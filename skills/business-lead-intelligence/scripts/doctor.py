@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -19,10 +20,33 @@ def check_module(name: str, *, required: bool) -> tuple[bool, str]:
     return not required, f"{label} Python module: {name} is not installed"
 
 
-def browser_control_status() -> tuple[bool, str]:
+def find_firefox() -> str | None:
+    """Find Firefox on PATH or in the standard macOS/Windows install locations."""
+    candidates: list[str | None] = [
+        os.environ.get("FIREFOX_BIN"),
+        shutil.which("firefox"),
+        shutil.which("firefox-esr"),
+    ]
+    if sys.platform == "darwin":
+        candidates.append("/Applications/Firefox.app/Contents/MacOS/firefox")
+    elif sys.platform.startswith("win"):
+        candidates.extend(
+            [
+                r"C:\Program Files\Mozilla Firefox\firefox.exe",
+                r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
+            ]
+        )
+    for candidate in candidates:
+        if candidate and Path(candidate).exists():
+            return candidate
+    return None
+
+
+def browser_control_status() -> tuple[bool, bool, str]:
+    """Return (installed, extension_connected, message)."""
     binary = shutil.which("browser-control")
     if not binary:
-        return False, "[info] browser-control is not on PATH (optional if Selenium works)"
+        return False, False, "[info] browser-control is not on PATH (optional if Selenium works)"
     try:
         proc = subprocess.run(
             [binary, "status", "--json"],
@@ -31,17 +55,17 @@ def browser_control_status() -> tuple[bool, str]:
             timeout=20,
         )
     except Exception as exc:  # noqa: BLE001 - diagnostic only
-        return True, f"[warn] browser-control found but status failed: {exc}"
+        return True, False, f"[warn] browser-control found but status failed: {exc}"
     if proc.returncode != 0:
-        return True, "[warn] browser-control is installed but its relay is not running"
+        return True, False, "[warn] browser-control is installed but its relay is not running"
     try:
         status = json.loads(proc.stdout)
     except json.JSONDecodeError:
-        return True, f"[info] browser-control status: {proc.stdout.strip()[:300]}"
+        return True, False, f"[info] browser-control status: {proc.stdout.strip()[:300]}"
     extension = (status.get("extension") or {}).get("connected")
     if extension:
-        return True, "[ok] browser-control extension is connected"
-    return True, "[warn] browser-control is running but no browser tab is attached"
+        return True, True, "[ok] browser-control extension is connected"
+    return True, False, "[warn] browser-control is running but no browser tab is attached"
 
 
 def main() -> None:
@@ -70,10 +94,10 @@ def main() -> None:
     good, message = check_module("selenium", required=False)
     print(message)
 
-    bc_ok, bc_message = browser_control_status()
+    _bc_present, bc_connected, bc_message = browser_control_status()
     print(bc_message)
 
-    firefox = shutil.which("firefox") or shutil.which("firefox-esr")
+    firefox = find_firefox()
     selenium_ok = importlib.util.find_spec("selenium") is not None
     if selenium_ok and firefox:
         print(f"[ok] Selenium fallback available (Firefox: {firefox})")
@@ -82,11 +106,20 @@ def main() -> None:
         driver_ok = False
         if not selenium_ok:
             print("[warn] Selenium is not installed, so the headless Firefox fallback is unavailable.")
+            print('       Install it with: pip install -r "$SKILL_DIR/requirements.txt"')
         if not firefox:
-            print("[warn] Firefox was not found on PATH.")
-        print("       Install selenium and Firefox, or attach the Browser Control extension.")
+            print("[warn] Firefox was not found.")
+            if sys.platform == "darwin":
+                print("       Install it with: brew install --cask firefox")
+            elif sys.platform.startswith("win"):
+                print("       Install it with: winget install Mozilla.Firefox")
+            else:
+                print("       Install it with: sudo apt install firefox  (Debian/Ubuntu)")
+                print("       or: sudo dnf install firefox  (Fedora), sudo pacman -S firefox  (Arch)")
+            print("       If Firefox is installed elsewhere, set FIREFOX_BIN to its executable.")
+        print("       Or attach the Browser Control extension to a browser tab.")
 
-    if not (bc_ok or driver_ok) and not args.allow_no_driver:
+    if not (bc_connected or driver_ok) and not args.allow_no_driver:
         ok = False
 
     out = Path("output")

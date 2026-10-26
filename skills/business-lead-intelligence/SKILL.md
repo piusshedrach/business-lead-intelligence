@@ -53,35 +53,138 @@ If the user says "only businesses with no website", "rating above 4.5", "at
 least 50 reviews", or "only broken/weak sites", map that to the filters below
 instead of filtering manually after the run.
 
-Run from a writable workspace (the pipeline writes `data/` and `output/` to
-the current directory):
+### After installation — first-run setup
+
+`npx skills` copies the skill files only. It does **not** install Python
+packages, Firefox, or the Browser Control extension. Complete these steps once
+before the first run.
+
+**1. Check the prerequisites**
+
+| Requirement | Check | Install |
+|---|---|---|
+| Python 3.10+ | `python3 --version` | <https://www.python.org/downloads/> |
+| pip + venv | `python3 -m pip --version` | Debian/Ubuntu: `sudo apt install python3-pip python3-venv` |
+| Node.js 22.20+ (npx install only) | `node --version` | <https://nodejs.org/> |
+| Firefox (Selenium driver only) | `firefox --version` | see step 4 |
+| Browser Control (alternative) | `browser-control status --json` | attach the extension |
+
+Ask the user before running `sudo` or installing system packages.
+
+**2. Create a writable workspace and virtual environment**
+
+The pipeline writes `data/` and `output/` to the current directory. Do not run
+it from a read-only skill install directory.
 
 ```bash
-# Point this at wherever the skill is installed.
 export SKILL_DIR="$HOME/.agents/skills/business-lead-intelligence"
-
-cd ~/lead-runs
+cd ~/lead-runs   # any writable directory
 python3 -m venv .venv
-.venv/bin/pip install -r "$SKILL_DIR/requirements.txt"
-export PY="$PWD/.venv/bin/python"
-"$PY" "$SKILL_DIR/scripts/doctor.py"
 ```
 
-On Windows use `.venv\Scripts\python` and `.venv\Scripts\pip`. If you prefer an
-existing Python environment, install `requirements.txt` there and use that
-interpreter instead. Python 3.10+ is required.
+On Windows:
 
-All command examples below use `$PY` for the interpreter and `$SKILL_DIR` for
-the installed skill directory. They are intentionally not tied to one machine.
+```bat
+set SKILL_DIR=%USERPROFILE%\.agents\skills\business-lead-intelligence
+cd %USERPROFILE%\lead-runs
+py -3 -m venv .venv
+```
 
-Browser Control must be attached to a real tab:
-1. Open any tab in the user's Chromium-family browser.
-2. Click the **Browser Control** toolbar button on that tab.
-3. Keep the tab open for the run.
+**3. Install the Python packages**
 
-If the extension is not attached, the first `browser-control execute` starts the
-relay and waits up to ~35 seconds. Ask the user to attach it; do not bypass
-CAPTCHA, consent, or login walls.
+```bash
+# macOS/Linux
+.venv/bin/pip install -r "$SKILL_DIR/requirements.txt"
+
+# Windows
+.venv\Scripts\pip install -r "%SKILL_DIR%\requirements.txt"
+```
+
+This installs `requests`, `beautifulsoup4`, and `selenium`. The minimum set is
+`requests` and `beautifulsoup4`; `selenium` is needed only for the Firefox
+fallback. `pip install requests beautifulsoup4 selenium` is equivalent.
+
+**4. Choose one Maps driver**
+
+*Option A — Browser Control (preferred)*
+
+1. Install the CLI if it is not already available:
+
+   ```bash
+   npm install -g @opencode-ai/browser-control
+   ```
+
+2. Run `browser-control doctor` and follow its **Next steps** to load the
+   bundled `extension/dist` folder as an unpacked extension in the user's
+   Chromium-family browser.
+3. Open a normal web tab and click the **Browser Control** toolbar button on
+   that tab.
+4. Keep the tab open, then check `browser-control status --json` and confirm
+   `extension.connected` is `true`.
+
+*Option B — Selenium + headless Firefox*
+
+Install Firefox:
+
+```bash
+# Debian/Ubuntu
+sudo apt update && sudo apt install -y firefox
+
+# Fedora
+sudo dnf install -y firefox
+
+# Arch
+sudo pacman -S --needed firefox
+
+# macOS
+brew install --cask firefox
+```
+
+Windows: install from <https://www.mozilla.org/firefox/> or run
+`winget install Mozilla.Firefox`.
+
+Verify it:
+
+```bash
+firefox --version
+```
+
+macOS keeps Firefox at
+`/Applications/Firefox.app/Contents/MacOS/firefox`. If the binary is not on
+`PATH`, set `FIREFOX_BIN` explicitly:
+
+```bash
+export FIREFOX_BIN="/Applications/Firefox.app/Contents/MacOS/firefox"
+```
+
+Selenium 4.20+ downloads a matching geckodriver automatically through Selenium
+Manager, so no manual geckodriver install is normally needed. If the machine is
+offline, install geckodriver manually and put it on `PATH`.
+
+**5. Verify the setup**
+
+```bash
+# macOS/Linux
+export PY="$PWD/.venv/bin/python"
+"$PY" "$SKILL_DIR/scripts/doctor.py"
+
+# Windows
+set PY=%CD%\.venv\Scripts\python.exe
+"%PY%" "%SKILL_DIR%\scripts\doctor.py"
+```
+
+The expected final line is `Ready.` The doctor reports the Python version,
+required modules, Browser Control status, Selenium/Firefox availability, and
+whether the output directory is writable.
+
+If it fails:
+
+- `ModuleNotFoundError` → use the venv interpreter or repeat step 3.
+- `browser-control` missing → use `--driver selenium`, or install and attach it.
+- Firefox missing → install it, or set `FIREFOX_BIN`.
+- `output` not writable → run from another workspace.
+
+All command examples below use `$PY` and `$SKILL_DIR`.
 
 The orchestrator supports three Maps drivers:
 
@@ -90,6 +193,10 @@ The orchestrator supports three Maps drivers:
 --driver browser    # Browser Control only
 --driver selenium   # headless Firefox + Selenium only
 ```
+
+If Browser Control is installed but no tab is attached, the first
+`browser-control execute` starts the relay and waits up to ~35 seconds. Ask the
+user to attach the extension; do not bypass CAPTCHA, consent, or login walls.
 
 `maps_extract_selenium.py` uses the system Firefox and the same config file. It
 is a fallback, not an anti-bot tool: handle the consent screen only. If Google

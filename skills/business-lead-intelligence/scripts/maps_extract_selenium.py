@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import tempfile
@@ -170,6 +171,9 @@ def main() -> None:
         raise SystemExit("No queries in config.")
 
     options = Options()
+    firefox_bin = os.environ.get("FIREFOX_BIN")
+    if firefox_bin:
+        options.binary_location = firefox_bin
     if args.headless:
         options.add_argument("-headless")
     options.add_argument("--width=1440")

@@ -29,8 +29,8 @@ Works with **OpenCode** and any agent that supports the
 - Python **3.10+**
 - `requests`, `beautifulsoup4`
 - One Maps driver:
-  - the [Browser Control](https://github.com/anomalyco/opencode) extension
-    attached to a real browser tab, **or**
+  - the [Browser Control](https://www.npmjs.com/package/@opencode-ai/browser-control)
+    extension attached to a real browser tab, **or**
   - `selenium` + a system Firefox (headless fallback)
 - Node.js 22.20+ only if you install with `npx skills`
 
@@ -40,7 +40,7 @@ No paid API keys are required.
 
 ```bash
 # Global install for OpenCode
-npx skills add <owner>/<repo> --skill business-lead-intelligence -a opencode -g --copy
+npx skills add piusshedrach/business-lead-intelligence --skill business-lead-intelligence -a opencode -g --copy
 ```
 
 `npx skills` copies the skill directory. It does **not** install Python
@@ -49,29 +49,118 @@ dependencies, so complete the setup below once.
 ## Manual install
 
 ```bash
-git clone https://github.com/<owner>/<repo>.git
+git clone https://github.com/piusshedrach/business-lead-intelligence.git
 mkdir -p ~/.agents/skills
-cp -R <repo>/skills/business-lead-intelligence ~/.agents/skills/
+cp -R business-lead-intelligence/skills/business-lead-intelligence ~/.agents/skills/
 ```
 
 OpenCode also discovers `~/.agents/skills`, `~/.claude/skills`, and project
 `.opencode/skills` / `.agents/skills` directories.
 
-## Setup
+## Setup after installing
 
-Run from a writable workspace; the pipeline writes `data/` and `output/` there.
+`npx skills` copies the skill files only. It does **not** install Python
+packages, Firefox, or the Browser Control extension. Complete these steps once.
+
+### 1. Python
+
+Requires Python 3.10+ with `pip` and `venv`.
+
+```bash
+python3 --version
+python3 -m pip --version
+```
+
+Debian/Ubuntu, if `venv` is missing:
+
+```bash
+sudo apt install python3-pip python3-venv
+```
+
+### 2. Create a workspace
+
+The pipeline writes `data/` and `output/` to the current directory, so use a
+writable workspace, not the read-only skill install directory.
 
 ```bash
 export SKILL_DIR="$HOME/.agents/skills/business-lead-intelligence"
 cd ~/lead-runs
 python3 -m venv .venv
-.venv/bin/pip install -r "$SKILL_DIR/requirements.txt"
-.venv/bin/python "$SKILL_DIR/scripts/doctor.py"
 ```
 
-On Windows use `.venv\Scripts\python` and `.venv\Scripts\pip`.
+On Windows:
 
-## Run
+```bat
+set SKILL_DIR=%USERPROFILE%\.agents\skills\business-lead-intelligence
+cd %USERPROFILE%\lead-runs
+py -3 -m venv .venv
+```
+
+### 3. Install the Python packages
+
+```bash
+# macOS/Linux
+.venv/bin/pip install -r "$SKILL_DIR/requirements.txt"
+
+# Windows
+.venv\Scripts\pip install -r "%SKILL_DIR%\requirements.txt"
+```
+
+This installs `requests`, `beautifulsoup4`, and `selenium`. Only `requests` and
+`beautifulsoup4` are required for the audit/report stages; `selenium` is needed
+for the Firefox Maps fallback.
+
+### 4. Install Firefox (Selenium fallback)
+
+Skip this if you will use the Browser Control extension.
+
+```bash
+# Debian/Ubuntu
+sudo apt update && sudo apt install -y firefox
+
+# Fedora
+sudo dnf install -y firefox
+
+# Arch
+sudo pacman -S --needed firefox
+
+# macOS
+brew install --cask firefox
+```
+
+Windows: install from <https://www.mozilla.org/firefox/> or run
+`winget install Mozilla.Firefox`.
+
+Verify:
+
+```bash
+firefox --version
+```
+
+On macOS, Firefox lives at
+`/Applications/Firefox.app/Contents/MacOS/firefox`. If it is not on `PATH`, set:
+
+```bash
+export FIREFOX_BIN="/Applications/Firefox.app/Contents/MacOS/firefox"
+```
+
+Selenium 4.20+ downloads geckodriver automatically through Selenium Manager. If
+the machine is offline, install geckodriver manually and put it on `PATH`.
+
+### 5. Verify
+
+```bash
+# macOS/Linux
+.venv/bin/python "$SKILL_DIR/scripts/doctor.py"
+
+# Windows
+.venv\Scripts\python "%SKILL_DIR%\scripts\doctor.py"
+```
+
+Expected final line: `Ready.` If it fails, the output tells you whether Python
+modules, Browser Control, Firefox, or the output directory need attention.
+
+### 6. Run
 
 ```bash
 .venv/bin/python "$SKILL_DIR/scripts/run_pipeline.py" \
