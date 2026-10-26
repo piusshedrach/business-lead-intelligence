@@ -1,0 +1,8 @@
+# Runtime dependencies for business-lead-intelligence.
+# Python 3.10+ is required.
+requests>=2.31
+beautifulsoup4>=4.12
+
+# Optional but recommended: headless Firefox fallback for Google Maps.
+# A system Firefox/geckodriver is also required for this path.
+selenium>=4.20
