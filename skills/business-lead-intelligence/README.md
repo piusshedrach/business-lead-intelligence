@@ -23,6 +23,10 @@ Works with **OpenCode** and any agent that supports the
    source URL and confidence. No guessed emails, no LinkedIn login scraping.
 5. **Report** — scores, prioritizes, recommends an offer, and writes an
    evidence-based outreach hook and draft opening line per business.
+6. **Write the email** — produces a short first-touch email per business with
+   one specific observation, a genuine problem or opportunity, the value of
+   fixing it, and one low-pressure ask. Drafts are grounded in the report and
+   never sent automatically.
 
 ## Requirements
 
@@ -160,15 +164,35 @@ the machine is offline, install geckodriver manually and put it on `PATH`.
 Expected final line: `Ready.` If it fails, the output tells you whether Python
 modules, Browser Control, Firefox, or the output directory need attention.
 
-### 6. Run
+### 6. Optional companion: cold-email
+
+The report generator writes grounded drafts on its own. For stronger outbound
+guidance, install the companion skill once:
+
+```bash
+npx skills add coreyhaines31/marketingskills \
+  --skill cold-email \
+  -a opencode -g --copy
+```
+
+It adds deliverability, sending-domain, follow-up, and reply-handling guidance.
+This skill still owns the business facts and evidence.
+
+### 7. Run
 
 ```bash
 .venv/bin/python "$SKILL_DIR/scripts/run_pipeline.py" \
   --business "dentists" \
   --location "Lahore" \
   --areas "Gulberg, DHA, Johar Town" \
-  --limit 25
+  --limit 25 \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address"
 ```
+
+The `--sender-*` flags fill the email signature and postal address. They do not
+send anything. If omitted, the drafts contain bracketed placeholders.
 
 Common filters:
 
@@ -201,11 +225,12 @@ Prepared input (skip Maps):
 
 | File | Contents |
 |---|---|
-| `output/<prefix>_FINDINGS.md` | Per-business report: score, findings, fixes, contacts, decision makers, outreach angle |
-| `output/<prefix>_all_leads.csv` | Every business with phone, published email, site status, score, priority, offer, outreach hook |
+| `output/<prefix>_FINDINGS.md` | Per-business report: score, findings, fixes, contacts, decision makers, outreach angle, cold-email draft |
+| `output/<prefix>_all_leads.csv` | Every business with phone, published email, site status, score, priority, offer, outreach hook, subject, body, cold-email status, notes, evidence |
 | `output/<prefix>_website_opportunity_leads.csv` | No-site, broken, or weak-site leads |
 | `output/<prefix>_site_findings.csv` | One row per finding with evidence and fix |
 | `output/<prefix>_decision_makers.csv` | Named people with role, confidence, source URL |
+| `output/<prefix>_cold_emails.md` | Copy-ready first-touch emails, grouped by whether a published email exists |
 | `data/*.json` | Raw discovery, audit, and research records |
 
 ## Safety and limits
@@ -213,7 +238,13 @@ Prepared input (skip Maps):
 - Public business data only. No login walls, CAPTCHA bypass, purchased data, or
   invented emails.
 - Google Maps does not expose email addresses. `email` is filled only when the
-  business publishes one on its own site.
+  business publishes one on its own site. The pipeline never guesses a personal
+  address; drafts without a recipient are marked `no_published_email`.
+- Cold-email drafts are first-touch only. The pipeline does not verify inboxes,
+  warm sending domains, send messages, or manage follow-ups. Use the
+  `cold-email` skill for deliverability, cadence, and reply handling.
+- Replace the sender name, company, and postal-address placeholders before
+  sending. A postal address and opt-out are required for compliant cold email.
 - HTTP/HTML auditing does not measure real-user Core Web Vitals or visual design.
 - 403/429 means "blocked to the auditor", not "site down".
 - Maps and search DOMs change. If extraction returns zero rows, inspect one page

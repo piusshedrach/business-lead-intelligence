@@ -13,7 +13,15 @@ from types import SimpleNamespace
 SCRIPTS = Path(__file__).resolve().parents[1] / "skills" / "business-lead-intelligence" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from build_report import opening_line, outreach_hook, possessive, recommended_offer  # noqa: E402
+from build_report import (  # noqa: E402
+    cold_email,
+    email_greeting,
+    opening_line,
+    outreach_hook,
+    possessive,
+    recommended_offer,
+    short_business_name,
+)
 from common import phones_match  # noqa: E402
 from find_decision_makers import (  # noqa: E402
     dedupe_candidates,
@@ -92,6 +100,107 @@ class ReportTests(unittest.TestCase):
     def test_possessive(self) -> None:
         self.assertEqual(possessive("De'Dentiste'"), "De'Dentiste's")
         self.assertEqual(possessive("SmileOn"), "SmileOn's")
+
+
+class ColdEmailTests(unittest.TestCase):
+    sender = {"name": "Alex", "company": "Example Co", "address": "1 Main St"}
+
+    def test_no_website_email_is_grounded_and_has_opt_out(self) -> None:
+        business = {"name": "Dr Ayesha", "rating": "4.8", "reviews": "82"}
+        audit = {"website_status": "no_website", "score": 0, "findings": []}
+        subject, body, status, notes, evidence = cold_email(
+            business, audit, {}, self.sender
+        )
+        self.assertEqual(status, "no_published_email")
+        self.assertIn("4.8", body)
+        self.assertIn("82", body)
+        self.assertIn("no website", body.lower())
+        self.assertIn("Not relevant?", body)
+        self.assertIn("Alex", body)
+        self.assertIn("1 Main St", body)
+        self.assertNotIn("—", body)
+        self.assertLessEqual(len(body.split()), 130)
+        self.assertEqual(len(subject.split()), 3)
+        self.assertIn("No website", evidence)
+
+    def test_named_buyer_and_specific_slow_finding(self) -> None:
+        business = {
+            "name": "Dental Avenue Hospital",
+            "email": "hello@example.com",
+            "rating": "4.8",
+            "reviews": "340",
+        }
+        audit = {
+            "website_status": "up",
+            "score": 37,
+            "findings": [
+                {
+                    "severity": "high",
+                    "title": "Homepage response is slow",
+                    "category": "Performance",
+                    "evidence": "Initial HTML response took 7.0s (TTFB plus download).",
+                }
+            ],
+        }
+        dm = {
+            "candidates": [
+                {
+                    "name": "Dr. Ahmed Waleed Wyne",
+                    "role": "Managing Director",
+                    "seniority": "executive",
+                }
+            ]
+        }
+        subject, body, status, notes, evidence = cold_email(
+            business, audit, dm, self.sender
+        )
+        self.assertEqual(status, "ready")
+        self.assertTrue(body.startswith("Hi Dr. Wyne,"))
+        self.assertIn("7 seconds", body)
+        self.assertIn("Homepage response is slow", evidence)
+        self.assertIn("Managing Director", notes)
+        self.assertNotIn("—", body)
+
+    def test_healthy_site_does_not_pitch_speed(self) -> None:
+        business = {
+            "name": "SmileOn Dental",
+            "email": "hello@example.com",
+            "rating": "4.9",
+            "reviews": "582",
+        }
+        audit = {
+            "website_status": "up",
+            "score": 82,
+            "findings": [
+                {
+                    "severity": "low",
+                    "title": "Homepage response could be faster",
+                    "category": "Performance",
+                    "evidence": "Initial HTML response took 1.5s.",
+                },
+                {
+                    "severity": "medium",
+                    "title": "No address or location block on the homepage",
+                    "category": "Trust",
+                    "evidence": "No address/location/visit-us language was found.",
+                },
+            ],
+        }
+        _, body, _, _, evidence = cold_email(business, audit, {}, self.sender)
+        self.assertNotIn("slow first load", body)
+        self.assertIn("clinic address", body)
+        self.assertIn("No address", evidence)
+
+    def test_short_names_and_greeting(self) -> None:
+        self.assertEqual(short_business_name("Dental Works and Aesthetics"), "Dental Works")
+        self.assertEqual(short_business_name("32 Dental Care"), "32 Dental")
+        dm = {
+            "candidates": [
+                {"name": "Dr. Hafsa Rao", "role": "Manager", "seniority": "management"}
+            ]
+        }
+        self.assertEqual(email_greeting(dm), "Hi Dr. Rao,")
+        self.assertEqual(email_greeting({}), "Hi team,")
 
 
 class FilterTests(unittest.TestCase):

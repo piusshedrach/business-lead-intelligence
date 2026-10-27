@@ -158,8 +158,10 @@ invented.
 `business_name, category, location, address, phone, email, website,
 website_type, website_status, website_status_label, http_status, audit_score,
 grade, opportunity_score, priority, qualification, recommended_offer,
-outreach_hook, opening_line, top_issues, strengths, decision_makers,
-best_contact_route, rating, reviews, place_url, query, verified_at`
+outreach_hook, opening_line, cold_email_subject, cold_email_body,
+cold_email_status, email_notes, email_evidence, top_issues, strengths,
+decision_makers, best_contact_route, rating, reviews, place_url, query,
+verified_at`
 
 `email` is the first published address found on the site (`mailto:`/visible
 text). Google Maps does not expose email addresses, so it is empty when the
@@ -167,7 +169,29 @@ business publishes none anywhere the pipeline can read.
 
 `outreach_hook` is the single strongest evidence-backed observable for the
 first message. `opening_line` is a draft built only from that observable and
-the verified status — edit the `[Name]` placeholder before sending.
+the verified status.
+
+`cold_email_subject` and `cold_email_body` are a first-touch draft. The subject
+is 2–4 lowercase words. The body contains one specific observation, one problem
+or opportunity, one value statement, one low-pressure ask, the sender
+signature, and a plain-text opt-out. Replace any `[bracketed]` sender
+placeholders before sending.
+
+`cold_email_status` is one of:
+
+- `ready` — a published business email exists and a draft was generated.
+- `no_published_email` — no published address was found. Use phone or the
+  contact form; do not guess an address.
+- `no_audit` — the audit was skipped, so no evidence-based draft exists.
+
+`email_notes` explains whether the draft is addressed to a verified buyer or a
+generic inbox. `email_evidence` is the exact finding used in the email body.
+It may differ from `outreach_hook` because the email picks the most
+customer-facing issue, not necessarily the strongest technical one.
+
+The pipeline never sends email. It does not verify inboxes or manage
+deliverability. Use the `cold-email` skill for sending setup, warm-up, cadence,
+and reply handling.
 
 ### `*_site_findings.csv`
 
@@ -178,5 +202,16 @@ why, fix, effort, page`
 
 `business_name, name, role, seniority, confidence, email, email_status,
 linkedin, source_type, source_url, evidence`
+
+Here `email_status` is the candidate-level verification state (`published` /
+`not_found`), not the cold-email readiness of the lead.
+
+### `*_cold_emails.md`
+
+One section per business, grouped into `Ready to send` and `No published email`.
+Each section contains the recipient, cold-email status, phone, subject, full
+plain-text body, review note, and the exact evidence used. The body includes the
+sender signature and opt-out. Drafts marked `no_published_email` must not be
+sent until a real address is found.
 
 All CSVs are UTF-8 with BOM (`utf-8-sig`) for Excel compatibility.

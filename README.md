@@ -3,7 +3,7 @@
 An evidence-first local lead pipeline for AI agents. Give it a niche, a
 location, and optional criteria; it discovers businesses on Google Maps, audits
 their websites, finds public decision makers, and produces proposal-ready
-findings and outreach angles.
+findings, outreach angles, and short personalized cold-email drafts.
 
 Built for **OpenCode** and compatible with any agent that supports the
 [Agent Skills](https://agentskills.io) layout.
@@ -145,6 +145,20 @@ Expected final line: `Ready.` The doctor checks the Python modules, Browser
 Control, Firefox, and output-directory access, and prints hints for anything
 missing.
 
+**6. Optional companion: cold-email**
+
+The report generator writes grounded first drafts on its own. For stronger
+outbound guidance, install the companion skill once:
+
+```bash
+npx skills add coreyhaines31/marketingskills \
+  --skill cold-email \
+  -a opencode -g --copy
+```
+
+It adds deliverability, sending-domain, follow-up, and reply-handling guidance.
+This skill still owns the business facts and evidence.
+
 ## Use
 
 ```bash
@@ -152,8 +166,14 @@ missing.
   --business "dentists" \
   --location "Lahore" \
   --areas "Gulberg, DHA, Johar Town" \
-  --limit 25
+  --limit 25 \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address"
 ```
+
+The `--sender-*` flags fill the email signature and postal address. They do not
+send anything. If omitted, the drafts contain bracketed placeholders.
 
 Filters:
 
@@ -171,12 +191,15 @@ follow its phases directly.
 ## Outputs
 
 - `<prefix>_FINDINGS.md` — per-business report with evidence, fixes, contacts,
-  decision makers, and an outreach angle
+  decision makers, an outreach angle, and a cold-email draft
 - `<prefix>_all_leads.csv` — all leads with phone, published email, site
-  status, score, priority, offer, outreach hook, opening line
+  status, score, priority, offer, outreach hook, opening line, subject, body,
+  cold-email status, notes, and email evidence
 - `<prefix>_website_opportunity_leads.csv` — no-site, broken, or weak-site leads
 - `<prefix>_site_findings.csv` — one row per finding
 - `<prefix>_decision_makers.csv` — named people with role and source URL
+- `<prefix>_cold_emails.md` — copy-ready first-touch emails, grouped by whether
+  a published email exists
 
 ## Repository layout
 
@@ -205,7 +228,13 @@ python3 -m venv .venv
 - Public business data only. No login walls, CAPTCHA bypass, purchased data, or
   invented emails.
 - Google Maps does not expose email addresses; `email` is only populated when
-  the business publishes one.
+  the business publishes one. The pipeline never guesses a personal address.
+  Drafts without a recipient are marked `no_published_email`.
+- Cold-email drafts are first-touch only. The pipeline does not verify inboxes,
+  warm sending domains, send messages, or manage follow-ups. Use the
+  `cold-email` skill for deliverability, cadence, and reply handling.
+- Replace the sender name, company, and postal-address placeholders before
+  sending. A postal address and opt-out are required for compliant cold email.
 - Audits are HTTP/HTML based, not real-user Core Web Vitals or visual design.
 - 403/429 means "blocked to the auditor", not "site down".
 - Respect Google's terms, local outreach rules, and opt-outs.

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""End-to-end orchestrator: Google Maps -> audit -> decision makers -> report.
+"""End-to-end orchestrator: Maps -> audit -> decision makers -> report -> emails.
 
 Examples:
   # Full run (requires the Browser Control extension attached to a tab)
   python run_pipeline.py --business "dentists" --location "Lahore" \
-      --areas "Gulberg, DHA, Johar Town" --limit 30
+      --areas "Gulberg, DHA, Johar Town" --limit 30 \
+      --sender-name "Your Name" --sender-address "Your postal address"
 
   # Skip Maps when you already have a businesses JSON
   python run_pipeline.py --input data/businesses.json --business "dentists" \
@@ -199,6 +200,9 @@ def main() -> None:
     parser.add_argument("--max-queries", type=int, default=6, help="Decision-maker search queries per business.")
     parser.add_argument("--output-dir", default="output")
     parser.add_argument("--prefix", default="")
+    parser.add_argument("--sender-name", default="[Your name]", help="Name used in cold-email signatures.")
+    parser.add_argument("--sender-company", default="", help="Company used in cold-email signatures.")
+    parser.add_argument("--sender-address", default="[Your postal address]", help="Postal address required in cold emails.")
     args = parser.parse_args()
 
     if not args.business and not args.input:
@@ -321,6 +325,12 @@ def main() -> None:
         str(out_dir),
         "--prefix",
         prefix,
+        "--sender-name",
+        args.sender_name,
+        "--sender-company",
+        args.sender_company,
+        "--sender-address",
+        args.sender_address,
     ]
     if dm_path:
         cmd.extend(["--decision-makers", dm_path])
@@ -333,6 +343,7 @@ def main() -> None:
     print(f"[pipeline] Done. Open {out_dir}/{prefix}_FINDINGS.md")
     print(f"[pipeline] Leads: {out_dir}/{prefix}_all_leads.csv")
     print(f"[pipeline] Opportunities: {out_dir}/{prefix}_website_opportunity_leads.csv")
+    print(f"[pipeline] Cold email drafts: {out_dir}/{prefix}_cold_emails.md")
 
 
 if __name__ == "__main__":

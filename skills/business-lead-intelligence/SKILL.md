@@ -7,10 +7,10 @@ description: >
   rating, and website, qualify each business, audit whether the website works
   and what is missing/broken and how to fix it, write a detailed finding per
   business, research named decision makers beyond the listed phone, and generate
-  an evidence-based outreach hook and opening line for proposals. Use when asked
-  to find leads, audit local business websites, build a prospect list, filter
-  businesses by rating or website status, or find owners/founders/managers for
-  outreach.
+  an evidence-based outreach hook, opening line, and short personalized cold
+  email for each lead. Use when asked to find leads, audit local business
+  websites, build a prospect list, filter businesses by rating or website
+  status, find owners/founders/managers, or write first-touch outreach.
 ---
 
 # Business Lead Intelligence
@@ -30,11 +30,12 @@ search result that is cited. If something cannot be verified, label it
 
 | File | Purpose |
 |---|---|
-| `output/<prefix>_all_leads.csv` | Every unique business with contact (including published email), site status, score, priority, offer, outreach hook, opening line |
+| `output/<prefix>_all_leads.csv` | Every unique business with contact (including published email), site status, score, priority, offer, outreach hook, opening line, and cold-email fields |
 | `output/<prefix>_website_opportunity_leads.csv` | Businesses with no site, a broken site, or a weak site |
 | `output/<prefix>_site_findings.csv` | One row per finding: severity, evidence, why, fix, page |
 | `output/<prefix>_decision_makers.csv` | Named people, role, confidence, source URL, published email |
-| `output/<prefix>_FINDINGS.md` | Detailed per-business report with prioritized fixes and outreach routes |
+| `output/<prefix>_FINDINGS.md` | Detailed per-business report with prioritized fixes, outreach routes, and a cold-email draft |
+| `output/<prefix>_cold_emails.md` | Copy-ready first-touch emails, grouped by whether a published email exists |
 | `output/<prefix>_run_summary.json` | Counts and averages used in the summary |
 
 ---
@@ -183,6 +184,21 @@ If it fails:
 - `browser-control` missing → use `--driver selenium`, or install and attach it.
 - Firefox missing → install it, or set `FIREFOX_BIN`.
 - `output` not writable → run from another workspace.
+
+**6. Optional companion: the `cold-email` skill**
+
+The report script can write grounded first drafts on its own. For stronger
+outbound guidance, install the companion skill once:
+
+```bash
+npx skills add coreyhaines31/marketingskills \
+  --skill cold-email \
+  -a opencode -g --copy
+```
+
+Load it before Phase 6 when it is available. It covers deliverability, sending
+domains, follow-up cadence, and reply handling. This skill still owns the
+business facts and evidence.
 
 All command examples below use `$PY` and `$SKILL_DIR`.
 
@@ -341,6 +357,8 @@ Read `references/audit-rules.md` for the full rule set and recommended fixes.
 - Contact channels
 - **Outreach angle:** the strongest observable, the recommended angle, and a
   draft opening line built only from verified findings
+- **Cold email:** recipient, send status, subject, full body, evidence, and a
+  note about whether a named buyer was verified
 - What works
 - Prioritized findings, each with **Where / Evidence / Why it matters / How to
   fix / Effort**
@@ -353,7 +371,8 @@ When presenting results, do not just dump the CSV. Summarize:
 3. The most common missing/broken patterns across the set (e.g. "12 of 20 have
    no mobile viewport; 9 have no LocalBusiness schema").
 4. The best outreach angle per hot lead.
-5. Data-quality caveats (blocked sites, missing phones, ambiguous names).
+5. How many cold emails are ready to send versus missing a published recipient.
+6. Data-quality caveats (blocked sites, missing phones, ambiguous names).
 
 ---
 
@@ -393,6 +412,71 @@ Read `references/decision-maker-sources.md` before expanding the search.
 
 ---
 
+## Phase 6 — Write the cold email
+
+This is the final stage, after discovery, audit, findings, and decision-maker
+research. Do not write the email before the facts are in the report.
+
+Load the `cold-email` skill if it is installed. Use it for outbound judgment and
+sending setup. Use this skill's report as the only source of business facts.
+
+`build_report.py` writes a first-touch draft for every business to
+`<prefix>_cold_emails.md` and to the `cold_email_subject` / `cold_email_body`
+columns. Treat those as drafts to review, not as approved copy.
+
+### The email shape
+
+One short email, usually 70–120 words:
+
+1. **Specific observation.** Reference something real: a rating and review
+   count, no website on the Maps listing, a server error, a slow response, a
+   missing contact form, or another cited finding. Use the number or detail from
+   the audit, not a vague compliment.
+2. **Genuine problem or opportunity.** Explain what that observation means for a
+   patient or for the business. Do not invent lost revenue, rankings, or
+   competitor claims.
+3. **Value of fixing it.** Frame the outcome for the patient: an easier next
+   step, a working contact route, a clearer location, a site that loads, or
+   trust at the moment they choose a dentist.
+4. **Simple, low-pressure offer.** One ask. A mockup, a short fix list, or a
+   recovery checklist is enough. Do not ask for a 30-minute call in the first
+   email.
+5. **Opt-out and sender identity.** Keep the plain-text opt-out. Replace the
+   postal-address placeholder before sending.
+
+### Rules
+
+- **No fabricated specifics.** No invented case studies, client names, results,
+  revenue figures, rankings, or “I saw your post” claims.
+- **No generic sales language.** Avoid “I hope this email finds you well,”
+  “quick question,” “synergy,” “leverage,” and long capability paragraphs.
+- **No AI tells.** Avoid “It's not X, it's Y” reveals, em-dash pileups, and
+  three-item lists that sound generated.
+- **One CTA.** The reader should know the single next step.
+- **Subject line:** 2–4 words, lowercase, no fake reply/forward prefixes, no
+  prospect first name.
+- **Greeting:** use a verified owner/manager name only when the source supports
+  it. Otherwise use `Hi team,` and note that the buyer is unverified.
+- **Recipient:** send only to a published business address. Never guess a
+  personal email. If `cold_email_status` is `no_published_email`, use the phone
+  or contact form instead.
+- **Evidence:** every observation in the body must trace to
+  `email_evidence`, `outreach_hook`, a finding, or a Maps field.
+- **Sender setup:** send from a secondary domain, verify the address list, keep
+  open tracking off, and stop follow-up when someone replies. Those are sending
+  tasks, not report tasks.
+
+### Review before sending
+
+Read the draft aloud. Check that it sounds like one person writing to another,
+that the specific detail is true, and that the offer is easy to decline. If the
+site is already healthy, keep the email light or skip it. If the business has no
+published email, do not invent one.
+
+The pipeline never sends email. It only writes drafts.
+
+---
+
 ## Commands
 
 ```bash
@@ -403,7 +487,10 @@ $PY "$SKILL_DIR/scripts/doctor.py"
 $PY "$SKILL_DIR/scripts/run_pipeline.py" \
   --business "dentists" --location "Lahore" \
   --areas "Gulberg, DHA, Johar Town" \
-  --limit 30 --max-queries 6
+  --limit 30 --max-queries 6 \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address"
 
 # Filtered: no website, established businesses only
 $PY "$SKILL_DIR/scripts/run_pipeline.py" \
@@ -430,8 +517,14 @@ $PY "$SKILL_DIR/scripts/build_report.py" \
   --businesses data/lahore_dentists_businesses.json \
   --audits data/lahore_dentists_audits.json \
   --decision-makers data/lahore_dentists_decision_makers.json \
-  --output-dir output --prefix lahore_dentists
+  --output-dir output --prefix lahore_dentists \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address"
 ```
+
+The sender flags are only for the email signature and opt-out. They do not send
+anything. If omitted, the drafts contain bracketed placeholders.
 
 ---
 
@@ -441,10 +534,13 @@ $PY "$SKILL_DIR/scripts/build_report.py" \
   counts, or audit results.
 - **Evidence for every finding.** The `evidence` field must quote the actual
   status code, header, element, or text.
-- **Outreach lines must stay evidence-based.** `outreach_hook` and
-  `opening_line` may only restate a verified finding, rating, review count, or
-  website status. Never add an unverified claim about revenue, rankings, or
-  competitors.
+- **Outreach lines must stay evidence-based.** `outreach_hook`, `opening_line`,
+  and every cold-email observation may only restate a verified finding, rating,
+  review count, or website status. Never add an unverified claim about revenue,
+  rankings, competitors, or results.
+- **Cold email is a draft, not a send.** One specific observation, one genuine
+  problem or opportunity, one value statement, one low-pressure ask, and one
+  opt-out. No invented proof, no guessed email, no automatic sending.
 - **Distinguish "broken" from "blocked".** 403/429 = verify manually.
 - **Distinguish "no website" from "no owned website".** A Facebook page is not
   a website, but it is still a contact channel.
@@ -468,6 +564,12 @@ $PY "$SKILL_DIR/scripts/build_report.py" \
 - Google Maps DOM changes; if extraction returns zero rows, inspect the page
   and update `maps_extract.js`.
 - Websites can block bots; those rows need a manual browser check.
+- Cold-email drafts are first-touch only. The pipeline does not verify inboxes,
+  warm domains, send messages, or manage follow-ups. Use the `cold-email` skill
+  for deliverability, cadence, and reply handling.
+- The sender name, company, and postal address are placeholders until you pass
+  the `--sender-*` flags or edit the drafts. A postal address and opt-out are
+  required for compliant cold email.
 - Decision-maker coverage is strongest for businesses with a team/about page or
   an active LinkedIn presence. Local owner-operated businesses often have no
   public named contact; use role-based outreach.
