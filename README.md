@@ -208,6 +208,48 @@ Filters:
 
 Drivers: `--driver auto` (default), `browser`, or `selenium`.
 
+## Send (optional)
+
+Sending is separate from discovery and never automatic. Review the dry run,
+then authorize the Gmail API once:
+
+```bash
+.venv/bin/python "$SKILL_DIR/scripts/gmail_sender.py" --auth
+.venv/bin/python "$SKILL_DIR/scripts/gmail_sender.py" --whoami
+```
+
+Preview the ready rows:
+
+```bash
+.venv/bin/python "$SKILL_DIR/scripts/gmail_sender.py" \
+  --csv output/lahore_dentists_all_leads.csv \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address" \
+  --show-body
+```
+
+Send a small, approved batch:
+
+```bash
+.venv/bin/python "$SKILL_DIR/scripts/gmail_sender.py" \
+  --csv output/lahore_dentists_all_leads.csv \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address" \
+  --send --yes --limit 5 --delay 5
+```
+
+The sender uses `cold_email_status=ready`, published addresses only, rejects
+remaining placeholders, suppresses duplicates through
+`.opencode/secrets/gmail_sent.json`, and records Gmail message IDs. Read
+`skills/business-lead-intelligence/references/gmail-sending.md` before the
+first send.
+
+The official Gmail MCP server is not required. It is currently gated behind the
+Google Workspace Developer Preview Program and exposes draft tools, not a send
+tool.
+
 The agent can also load the skill by ID (`business-lead-intelligence`) and
 follow its phases directly.
 
@@ -233,9 +275,11 @@ skills/business-lead-intelligence/
 ├── dependencies.json
 ├── requirements.txt
 ├── references/
+│   └── gmail-sending.md
 └── scripts/
     ├── bootstrap.py
     ├── doctor.py
+    ├── gmail_sender.py
     └── run_pipeline.py
 tests/
 └── test_smoke.py
@@ -258,10 +302,14 @@ python3 -m venv .venv
   the business publishes one. The pipeline never guesses a personal address.
   Drafts without a recipient are marked `no_published_email`.
 - Cold-email drafts are first-touch only. The pipeline does not verify inboxes,
-  warm sending domains, send messages, or manage follow-ups. Use the
-  `cold-email` skill for deliverability, cadence, and reply handling.
+  warm sending domains, or manage follow-ups. Use the `cold-email` skill for
+  deliverability, cadence, and reply handling.
+- Sending is optional and explicit. `gmail_sender.py` sends after OAuth and
+  `--send --yes`; it is not part of the discovery pipeline. Start small and
+  respect Gmail's sending limits.
 - Replace the sender name, company, and postal-address placeholders before
-  sending. A postal address and opt-out are required for compliant cold email.
+  sending. The sender refuses to send while placeholders remain. A postal
+  address and opt-out are required for compliant cold email.
 - Audits are HTTP/HTML based, not real-user Core Web Vitals or visual design.
 - 403/429 means "blocked to the auditor", not "site down".
 - Respect Google's terms, local outreach rules, and opt-outs.

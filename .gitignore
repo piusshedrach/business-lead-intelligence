@@ -8,3 +8,7 @@ data/
 *.log
 .DS_Store
 .env
+.opencode/secrets/
+client_secret_*.json
+gmail_token.json
+gmail_sent.json

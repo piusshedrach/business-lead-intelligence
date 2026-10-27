@@ -496,7 +496,79 @@ that the specific detail is true, and that the offer is easy to decline. If the
 site is already healthy, keep the email light or skip it. If the business has no
 published email, do not invent one.
 
-The pipeline never sends email. It only writes drafts.
+The pipeline never sends email automatically. It writes drafts. Sending is a
+separate step that requires explicit approval.
+
+---
+
+## Phase 7 — Send only after explicit approval
+
+Sending is optional. Do not run it until the user has reviewed the dry run and
+explicitly approved the recipients and batch size. Read
+`references/gmail-sending.md` before the first send.
+
+The sender uses the Gmail API directly. The official Gmail MCP server is not
+required; it is currently gated behind the Google Workspace Developer Preview
+Program and exposes draft tools, not a send tool.
+
+### 1. Authorize once
+
+```bash
+$PY "$SKILL_DIR/scripts/gmail_sender.py" --auth
+```
+
+The token is stored in `.opencode/secrets/gmail_token.json` with mode `600`.
+Verify the account:
+
+```bash
+$PY "$SKILL_DIR/scripts/gmail_sender.py" --whoami
+```
+
+### 2. Dry run
+
+```bash
+$PY "$SKILL_DIR/scripts/gmail_sender.py" \
+  --csv output/<prefix>_all_leads.csv \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address" \
+  --show-body
+```
+
+This prints each ready recipient and subject. It does not contact Gmail.
+
+### 3. Send
+
+After the user approves the dry run:
+
+```bash
+$PY "$SKILL_DIR/scripts/gmail_sender.py" \
+  --csv output/<prefix>_all_leads.csv \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address" \
+  --send --yes --limit 5 --delay 5
+```
+
+### Sending rules
+
+- **No automatic sending.** `run_pipeline.py` and `build_report.py` never send.
+- **Explicit approval.** Actual sending requires `--send --yes`; without
+  `--yes`, a terminal prompts for `SEND`.
+- **Ready rows only.** The sender reads `cold_email_status=ready` and a single
+  published email. It skips `no_published_email`, blank, or malformed addresses.
+- **No placeholders.** Sender name, company, and postal address must be real
+  before `--send`.
+- **Small batches first.** Start with 3–5 emails, review replies, then expand.
+  Keep `--delay` at 3 seconds or more.
+- **No duplicates.** Successful sends are logged in
+  `.opencode/secrets/gmail_sent.json`. Do not use `--resend` unless the user
+  asks.
+- **Stop on failure.** If Gmail returns an error, stop and report it. Do not
+  retry blindly or work around a 403/429.
+- **Keep the opt-out.** The plain-text opt-out must remain in every email.
+- **Respect the law.** Use a real postal address, honor opt-outs immediately,
+  and follow local cold-email rules.
 
 ---
 
@@ -544,10 +616,28 @@ $PY "$SKILL_DIR/scripts/build_report.py" \
   --sender-name "Your Name" \
   --sender-company "Your Company" \
   --sender-address "Your postal address"
+
+# Gmail sending (optional; dry-run first)
+$PY "$SKILL_DIR/scripts/gmail_sender.py" --auth
+$PY "$SKILL_DIR/scripts/gmail_sender.py" --whoami
+$PY "$SKILL_DIR/scripts/gmail_sender.py" \
+  --csv output/lahore_dentists_all_leads.csv \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address" \
+  --show-body
+$PY "$SKILL_DIR/scripts/gmail_sender.py" \
+  --csv output/lahore_dentists_all_leads.csv \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address" \
+  --send --yes --limit 5 --delay 5
 ```
 
-The sender flags are only for the email signature and opt-out. They do not send
-anything. If omitted, the drafts contain bracketed placeholders.
+The `--sender-*` flags on `run_pipeline.py` and `build_report.py` only fill the
+draft signature and opt-out. They do not send anything. If omitted, the drafts
+contain bracketed placeholders. `gmail_sender.py` replaces those placeholders at
+send time and refuses to send while any remain.
 
 ---
 
@@ -561,9 +651,10 @@ anything. If omitted, the drafts contain bracketed placeholders.
   and every cold-email observation may only restate a verified finding, rating,
   review count, or website status. Never add an unverified claim about revenue,
   rankings, competitors, or results.
-- **Cold email is a draft, not a send.** One specific observation, one genuine
-  problem or opportunity, one value statement, one low-pressure ask, and one
-  opt-out. No invented proof, no guessed email, no automatic sending.
+- **Cold email is draft-first.** One specific observation, one genuine problem
+  or opportunity, one value statement, one low-pressure ask, and one opt-out. No
+  invented proof, no guessed email, and no automatic sending. Sending is Phase 7
+  and requires explicit approval.
 - **Distinguish "broken" from "blocked".** 403/429 = verify manually.
 - **Distinguish "no website" from "no owned website".** A Facebook page is not
   a website, but it is still a contact channel.
@@ -588,11 +679,15 @@ anything. If omitted, the drafts contain bracketed placeholders.
   and update `maps_extract.js`.
 - Websites can block bots; those rows need a manual browser check.
 - Cold-email drafts are first-touch only. The pipeline does not verify inboxes,
-  warm domains, send messages, or manage follow-ups. Use the `cold-email` skill
-  for deliverability, cadence, and reply handling.
+  warm domains, or manage follow-ups. Use the `cold-email` skill for
+  deliverability, cadence, and reply handling.
+- Sending is optional and explicit. `gmail_sender.py` sends through the Gmail
+  API after OAuth and `--send --yes`; it is not part of the discovery pipeline.
+  Start with a small batch and respect Gmail's sending limits.
 - The sender name, company, and postal address are placeholders until you pass
-  the `--sender-*` flags or edit the drafts. A postal address and opt-out are
-  required for compliant cold email.
+  the `--sender-*` flags or edit the drafts. `gmail_sender.py` refuses to send
+  while placeholders remain. A postal address and opt-out are required for
+  compliant cold email.
 - Decision-maker coverage is strongest for businesses with a team/about page or
   an active LinkedIn presence. Local owner-operated businesses often have no
   public named contact; use role-based outreach.

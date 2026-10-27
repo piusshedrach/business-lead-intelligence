@@ -25,8 +25,10 @@ Works with **OpenCode** and any agent that supports the
    evidence-based outreach hook and draft opening line per business.
 6. **Write the email** — produces a short first-touch email per business with
    one specific observation, a genuine problem or opportunity, the value of
-   fixing it, and one low-pressure ask. Drafts are grounded in the report and
-   never sent automatically.
+   fixing it, and one low-pressure ask. Drafts are grounded in the report.
+7. **Send (optional)** — after review and explicit approval, sends ready drafts
+   through the Gmail API with duplicate suppression and a local sent log. The
+   discovery pipeline never sends automatically.
 
 ## Requirements
 
@@ -37,6 +39,7 @@ Works with **OpenCode** and any agent that supports the
     extension attached to a real browser tab, **or**
   - `selenium` + a system Firefox (headless fallback)
 - Node.js 22.20+ only if you install with `npx skills`
+- Optional for sending: a Google Cloud OAuth client with the Gmail API enabled
 
 No paid API keys are required.
 
@@ -244,6 +247,47 @@ Prepared input (skip Maps):
   --business "dentists" --location "Lahore"
 ```
 
+## Send (optional)
+
+Sending is a separate, explicit step. Authorize the Gmail API once:
+
+```bash
+.venv/bin/python "$SKILL_DIR/scripts/gmail_sender.py" --auth
+.venv/bin/python "$SKILL_DIR/scripts/gmail_sender.py" --whoami
+```
+
+Preview every ready draft:
+
+```bash
+.venv/bin/python "$SKILL_DIR/scripts/gmail_sender.py" \
+  --csv output/lahore_dentists_all_leads.csv \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address" \
+  --show-body
+```
+
+Send a small, approved batch:
+
+```bash
+.venv/bin/python "$SKILL_DIR/scripts/gmail_sender.py" \
+  --csv output/lahore_dentists_all_leads.csv \
+  --sender-name "Your Name" \
+  --sender-company "Your Company" \
+  --sender-address "Your postal address" \
+  --send --yes --limit 5 --delay 5
+```
+
+The sender reads only `cold_email_status=ready` rows with a single published
+address, refuses to send while placeholders remain, suppresses duplicates via
+`.opencode/secrets/gmail_sent.json`, and records Gmail message IDs. See
+`references/gmail-sending.md` for OAuth setup, scopes, filters, and
+troubleshooting.
+
+The official Gmail MCP server is not required. It is currently gated behind the
+Google Workspace Developer Preview Program and exposes draft tools, not a send
+tool.
+
 ## Outputs
 
 | File | Contents |
@@ -264,10 +308,14 @@ Prepared input (skip Maps):
   business publishes one on its own site. The pipeline never guesses a personal
   address; drafts without a recipient are marked `no_published_email`.
 - Cold-email drafts are first-touch only. The pipeline does not verify inboxes,
-  warm sending domains, send messages, or manage follow-ups. Use the
-  `cold-email` skill for deliverability, cadence, and reply handling.
+  warm sending domains, or manage follow-ups. Use the `cold-email` skill for
+  deliverability, cadence, and reply handling.
+- Sending is optional and explicit. `gmail_sender.py` sends after OAuth and
+  `--send --yes`; it is not part of the discovery pipeline. Start small and
+  respect Gmail's sending limits.
 - Replace the sender name, company, and postal-address placeholders before
-  sending. A postal address and opt-out are required for compliant cold email.
+  sending. The sender refuses to send while placeholders remain. A postal
+  address and opt-out are required for compliant cold email.
 - HTTP/HTML auditing does not measure real-user Core Web Vitals or visual design.
 - 403/429 means "blocked to the auditor", not "site down".
 - Maps and search DOMs change. If extraction returns zero rows, inspect one page

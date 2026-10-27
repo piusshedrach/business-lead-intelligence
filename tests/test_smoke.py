@@ -5,8 +5,13 @@ Run from the repository root:
 """
 from __future__ import annotations
 
+import base64
+import csv
+import json
 import sys
+import tempfile
 import unittest
+from email import message_from_bytes
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -34,6 +39,15 @@ from find_decision_makers import (  # noqa: E402
     dedupe_candidates,
     plausible_name,
     strip_trailing_role,
+)
+from gmail_sender import (  # noqa: E402
+    DEFAULT_REDIRECT_URI,
+    apply_sender_placeholders,
+    build_raw_message,
+    load_client,
+    load_ready_rows,
+    token_is_fresh,
+    validate_email,
 )
 from run_pipeline import build_queries, matches_pre_filters  # noqa: E402
 
@@ -208,6 +222,113 @@ class ColdEmailTests(unittest.TestCase):
         }
         self.assertEqual(email_greeting(dm), "Hi Dr. Rao,")
         self.assertEqual(email_greeting({}), "Hi team,")
+
+
+class GmailSenderTests(unittest.TestCase):
+    def test_sender_placeholders_are_replaced(self) -> None:
+        body = (
+            "Hi team,\n\n"
+            "One verified detail.\n\n"
+            "[Your name]\n"
+            "[Your company]\n"
+            "[Your postal address]\n"
+        )
+        result = apply_sender_placeholders(
+            body,
+            sender_name="Alex Khan",
+            sender_company="",
+            sender_address="1 Main St, Lahore",
+        )
+        self.assertIn("Alex Khan", result)
+        self.assertIn("1 Main St, Lahore", result)
+        self.assertNotIn("[Your name]", result)
+        self.assertNotIn("[Your company]", result)
+        self.assertNotIn("[Your postal address]", result)
+
+    def test_sender_placeholders_survive_when_values_are_missing(self) -> None:
+        result = apply_sender_placeholders(
+            "[Your name]\n[Your postal address]\n",
+            sender_name="",
+            sender_company="",
+            sender_address="",
+        )
+        self.assertIn("[Your name]", result)
+        self.assertIn("[Your postal address]", result)
+
+    def test_raw_message_is_plain_text_with_opt_out_header(self) -> None:
+        raw = build_raw_message(
+            to="owner@example.com",
+            subject="clinic security",
+            body="Hi team,\n\nA verified detail.\n\nNot relevant? Reply \"no\".\n",
+            sender="Alex <alex@example.com>",
+            unsubscribe="alex@example.com",
+        )
+        message = message_from_bytes(base64.urlsafe_b64decode(raw))
+        self.assertEqual(message["To"], "owner@example.com")
+        self.assertEqual(message["Subject"], "clinic security")
+        self.assertEqual(message["From"], "Alex <alex@example.com>")
+        self.assertEqual(
+            message["List-Unsubscribe"],
+            "<mailto:alex@example.com?subject=unsubscribe>",
+        )
+        self.assertTrue(message["Message-ID"].endswith("@example.com>"))
+        plain = message.get_payload(decode=True).decode("utf-8")
+        self.assertIn("Not relevant?", plain)
+
+    def test_email_validation_rejects_lists_and_guesses(self) -> None:
+        self.assertTrue(validate_email("info@example.com"))
+        self.assertFalse(validate_email(""))
+        self.assertFalse(validate_email("info@example.com, owner@example.com"))
+        self.assertFalse(validate_email("not-an-email"))
+
+    def test_client_file_uses_loopback_redirect(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "client.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "web": {
+                            "client_id": "client-id",
+                            "client_secret": "client-secret",
+                            "redirect_uris": [DEFAULT_REDIRECT_URI],
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            client = load_client(path)
+            self.assertEqual(client["client_id"], "client-id")
+            self.assertEqual(client["redirect_uri"], DEFAULT_REDIRECT_URI)
+
+    def test_ready_rows_filter_status_recipient_and_limit(self) -> None:
+        fields = [
+            "business_name",
+            "email",
+            "cold_email_status",
+            "cold_email_subject",
+            "cold_email_body",
+        ]
+        rows = [
+            ["Ready Clinic", "info@ready.example", "ready", "ready subject", "Ready body"],
+            ["No Email Clinic", "", "no_published_email", "subject", "body"],
+            ["Broken Clinic", "bad-email", "ready", "subject", "body"],
+            ["Other Clinic", "owner@other.example", "ready", "other subject", "Other body"],
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "leads.csv"
+            with path.open("w", encoding="utf-8-sig", newline="") as handle:
+                writer = csv.writer(handle)
+                writer.writerow(fields)
+                writer.writerows(rows)
+            selected = load_ready_rows(path, limit=10)
+            self.assertEqual([row["email"] for row in selected], ["info@ready.example", "owner@other.example"])
+            self.assertEqual(len(load_ready_rows(path, limit=1)), 1)
+            filtered = load_ready_rows(path, only="Other", limit=10)
+            self.assertEqual([row["email"] for row in filtered], ["owner@other.example"])
+
+    def test_expired_token_is_not_fresh(self) -> None:
+        self.assertFalse(token_is_fresh({"access_token": "x", "expires_at": 1}))
+        self.assertFalse(token_is_fresh({}))
 
 
 class FilterTests(unittest.TestCase):
