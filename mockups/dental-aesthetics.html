@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dental Aesthetics | Dentist in Lahore</title>
+<style>
+  :root {
+    --accent: #7c3aed;
+    --accent-soft: #ede9fe;
+    --ink: #14201f;
+    --muted: #5b6865;
+    --line: #dfe8e5;
+    --bg: #f7faf9;
+    --white: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--white);
+    line-height: 1.55;
+  }
+  a { color: inherit; }
+  .wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+  .site-header {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255,255,255,.94);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(12px);
+  }
+  .site-header .wrap {
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    min-height: 72px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 750; letter-spacing: -.02em; }
+  .mark {
+    width: 38px; height: 38px; border-radius: 12px;
+    display: grid; place-items: center;
+    background: var(--accent); color: white; font-weight: 800;
+  }
+  nav { display: flex; gap: 22px; font-size: 14px; color: var(--muted); }
+  nav a { text-decoration: none; }
+  nav a:hover { color: var(--accent); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 13px 20px; border-radius: 999px;
+    background: var(--accent); color: white; text-decoration: none;
+    font-weight: 700; font-size: 14px; border: 1px solid var(--accent);
+  }
+  .btn:hover { filter: brightness(.94); }
+  .btn-small { padding: 10px 16px; }
+  .btn-ghost { background: white; color: var(--accent); }
+  .hero {
+    background:
+      radial-gradient(900px 420px at 85% 10%, var(--accent-soft), transparent 70%),
+      linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+    padding: 72px 0 56px;
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 48px; align-items: center; }
+  .eyebrow {
+    margin: 0 0 12px; text-transform: uppercase; letter-spacing: .14em;
+    font-size: 12px; font-weight: 800; color: var(--accent);
+  }
+  h1 { margin: 0; font-size: clamp(38px, 5vw, 64px); line-height: 1.02; letter-spacing: -.045em; max-width: 760px; }
+  .lede { margin: 22px 0 0; font-size: 18px; color: var(--muted); max-width: 650px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .rating { display: flex; align-items: center; gap: 10px; margin-top: 24px; color: var(--muted); font-size: 14px; }
+  .stars { color: #f59e0b; letter-spacing: 2px; font-size: 16px; }
+  .hero-card {
+    background: white; border: 1px solid var(--line); border-radius: 22px;
+    padding: 26px; box-shadow: 0 20px 60px rgba(20,32,31,.10);
+  }
+  .card-label { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 800; }
+  .hero-card p { margin: 0 0 14px; }
+  .hero-card a { color: var(--accent); font-weight: 700; text-decoration: none; }
+  .hero-card hr { border: 0; border-top: 1px solid var(--line); margin: 18px 0; }
+  .trust { background: var(--accent); color: white; }
+  .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 22px 0; }
+  .trust-item { display: flex; align-items: baseline; gap: 10px; }
+  .trust-item strong { font-size: 26px; letter-spacing: -.03em; }
+  .trust-item span { opacity: .85; font-size: 14px; }
+  .section { padding: 72px 0; }
+  .section.alt { background: var(--bg); }
+  .section h2 { margin: 0; font-size: clamp(30px, 3.4vw, 44px); line-height: 1.08; letter-spacing: -.035em; max-width: 720px; }
+  .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 32px; }
+  .service {
+    background: white; border: 1px solid var(--line); border-radius: 18px; padding: 22px;
+  }
+  .service h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -.02em; }
+  .service p { margin: 0; color: var(--muted); font-size: 14px; }
+  .two-col { display: grid; grid-template-columns: 1fr .85fr; gap: 56px; align-items: start; }
+  .two-col p { color: var(--muted); font-size: 17px; }
+  .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .checks li { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; font-weight: 650; }
+  .checks li::before { content: "✓"; color: var(--accent); font-weight: 900; margin-right: 10px; }
+  .contact-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; }
+  .contact-card { background: var(--accent); color: white; border-radius: 24px; padding: 34px; }
+  .contact-card a { color: white; }
+  .contact-card .btn { background: white; color: var(--accent); border-color: white; }
+  footer { background: #10201d; color: #c9d6d2; padding: 26px 0; font-size: 12px; }
+  footer p { margin: 4px 0; }
+  @media (max-width: 860px) {
+    nav { display: none; }
+    .hero-grid, .two-col, .contact-grid { grid-template-columns: 1fr; }
+    .hero { padding-top: 48px; }
+    .services { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .services { grid-template-columns: 1fr; }
+    .trust-grid { grid-template-columns: 1fr; gap: 10px; }
+    .hero-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="mark">D</span><span>Dental Aesthetics</span></a>
+    <nav>
+      <a href="#services">Services</a>
+      <a href="#why">Why us</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="btn btn-small" href="tel:+923032737773">Call now</a>
+  </div>
+</header>
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Dentist in Lahore</p>
+        <h1>Dental care that puts your smile first.</h1>
+        <p class="lede">Implants, clear braces, whitening, and emergency care in DHA Phase 3, with a team that focuses on the result and the experience.</p>
+        <div class="actions">
+          <a class="btn" href="tel:+923032737773">Call +92 303 2737773</a>
+          <a class="btn btn-ghost" href="mailto:talk@dentalaesthetics.pk?subject=Appointment%20request">Book appointment</a>
+        </div>
+        <div class="rating"><span class="stars">★★★★★</span><span><strong>4.6</strong> from 456 Google reviews</span></div>
+      </div>
+      <aside class="hero-card">
+        <p class="card-label">Visit us</p>
+        <p>187 Y, 3 Street 11, Phase Sector Y DHA Phase 3, Lahore, 54000, Pakistan</p>
+        <a href="https://www.google.com/maps/search/?api=1&query=187+Y,+3+Street+11,+Phase+Sector+Y+DHA+Phase+3,+Lahore,+54000,+Pakistan" target="_blank" rel="noopener">Get directions →</a>
+        <hr>
+        <p class="card-label">Call</p>
+        <p><a href="tel:+923032737773">+92 303 2737773</a></p>
+        <p class="card-label">Email</p>
+        <p><a href="mailto:talk@dentalaesthetics.pk">talk@dentalaesthetics.pk</a></p>
+      </aside>
+    </div>
+  </section>
+  <section class="trust">
+    <div class="wrap trust-grid">
+      <div class="trust-item"><strong>4.6</strong><span>Google rating</span></div>
+      <div class="trust-item"><strong>456</strong><span>patient reviews</span></div>
+      <div class="trust-item"><strong>Emergency</strong><span>dentistry</span></div>
+    </div>
+  </section>
+  <section id="services" class="section">
+    <div class="wrap">
+      <p class="eyebrow">Services</p>
+      <h2>Care for the reason you are visiting, not just the tooth in front of you.</h2>
+      <div class="services">
+        <article class="service"><h3>Emergency Dentistry</h3><p>Same-day help when pain or damage cannot wait.</p></article>
+        <article class="service"><h3>Dental Implants</h3><p>A long-term replacement that looks and feels like a real tooth.</p></article>
+        <article class="service"><h3>Clear Braces</h3><p>A less visible way to straighten teeth at your own pace.</p></article>
+        <article class="service"><h3>Nitrous Oxide</h3><p>A calmer option for anxious patients and longer appointments.</p></article>
+        <article class="service"><h3>Veneers</h3><p>A precise fix for shape, colour, and small gaps.</p></article>
+        <article class="service"><h3>Teeth Whitening</h3><p>Professional whitening with a plan for sensitivity.</p></article>
+      </div>
+    </div>
+  </section>
+  <section id="why" class="section alt">
+    <div class="wrap two-col">
+      <div>
+        <p class="eyebrow">Why Dental Aesthetics</p>
+        <h2>Modern dentistry, human pace</h2>
+        <p>You get the technology of a modern clinic without feeling rushed. The team explains the options, answers questions, and lets you choose the next step instead of pushing you into treatment on the first visit.</p>
+      </div>
+      <ul class="checks">
+        <li>4.6 stars from 456 Google reviews</li>
+        <li>Implants and clear braces</li>
+        <li>Emergency dentistry</li>
+        <li>DHA Phase 3 location</li>
+      </ul>
+    </div>
+  </section>
+  <section id="contact" class="section">
+    <div class="wrap contact-grid">
+      <div>
+        <p class="eyebrow">Contact</p>
+        <h2>Ready when you are.</h2>
+        <p style="color:var(--muted);font-size:17px">Call the clinic, send an email, or get directions. The team can tell you what to expect before you book.</p>
+      </div>
+      <div class="contact-card">
+        <p class="card-label" style="color:rgba(255,255,255,.75)">Call</p>
+        <p style="margin:0 0 18px;font-size:24px;font-weight:800;letter-spacing:-.02em"><a href="tel:+923032737773" style="text-decoration:none">+92 303 2737773</a></p>
+        <p class="card-label" style="color:rgba(255,255,255,.75)">Visit</p>
+        <p style="margin:0 0 18px">187 Y, 3 Street 11, Phase Sector Y DHA Phase 3, Lahore, 54000, Pakistan</p>
+        <a class="btn" href="mailto:talk@dentalaesthetics.pk?subject=Appointment%20request">Book by email</a>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  <div class="wrap">
+    <p>Free landing page concept prepared for Dental Aesthetics by Pius Shedrach.</p>
+    <p>This is a concept, not the live site. Content is based on the public Google Business Profile and the clinic's public website.</p>
+  </div>
+</footer>
+</body>
+</html>
