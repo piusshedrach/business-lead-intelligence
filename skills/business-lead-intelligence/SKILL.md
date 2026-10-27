@@ -441,7 +441,7 @@ research. Do not write the email before the facts are in the report.
 
 Load the `cold-email` skill (the bootstrap installs it). Use it for outbound
 judgment and sending setup. Use this skill's report as the only source of
-business facts.
+business facts. Read `references/email-copy.md` before rewriting a draft.
 
 `build_report.py` writes a first-touch draft for every business to
 `<prefix>_cold_emails.md` and to the `cold_email_subject` / `cold_email_body`
@@ -449,7 +449,7 @@ columns. Treat those as drafts to review, not as approved copy.
 
 ### The email shape
 
-One short email, usually 70–120 words:
+One short email, usually 50–90 words:
 
 1. **Specific observation.** Reference something real: a rating and review
    count, no website on the Maps listing, a server error, a slow response, a
@@ -461,16 +461,20 @@ One short email, usually 70–120 words:
 3. **Value of fixing it.** Frame the outcome for the patient: an easier next
    step, a working contact route, a clearer location, a site that loads, or
    trust at the moment they choose a dentist.
-4. **Simple, low-pressure offer.** One ask. A mockup, a short fix list, or a
-   recovery checklist is enough. Do not ask for a 30-minute call in the first
-   email.
-5. **Opt-out and sender identity.** Keep the plain-text opt-out. Replace the
-   postal-address placeholder before sending.
+4. **Simple, low-pressure offer.** One ask. A free landing page concept, a short
+   fix list, or a recovery checklist is enough. Do not ask for a 30-minute call
+   in the first email.
+5. **Opt-out and sender identity.** Keep a natural opt-out and the postal
+   address. Replace the address placeholder before sending.
 
 ### Rules
 
 - **No fabricated specifics.** No invented case studies, client names, results,
   revenue figures, rankings, or “I saw your post” claims.
+- **No fake mockup claim.** Say “I built a free landing page concept” only when
+  the concept exists and the URL works. Otherwise say “I can build” or “I can
+  send an outline.” Do not put the mockup link in the first email; ask
+  permission first.
 - **No generic sales language.** Avoid “I hope this email finds you well,”
   “quick question,” “synergy,” “leverage,” and long capability paragraphs.
 - **No AI tells.** Avoid “It's not X, it's Y” reveals, em-dash pileups, and
@@ -485,6 +489,13 @@ One short email, usually 70–120 words:
   or contact form instead.
 - **Evidence:** every observation in the body must trace to
   `email_evidence`, `outreach_hook`, a finding, or a Maps field.
+- **Natural opt-out:** do not use “Not relevant? Reply ‘no’ and I won't follow
+  up.” Use a human line such as “If this isn't useful, just say so and I'll
+  stop.” Keep the postal address in the signature.
+- **Plain text:** no HTML, bold, images, tracking pixels, or links in the first
+  touch. Send a link only after the prospect asks for it.
+- **Vary the opening.** Do not start every email with “I ran a quick audit.”
+  Rotate the observation, the consequence, and the opt-out line.
 - **Sender setup:** send from a secondary domain, verify the address list, keep
   open tracking off, and stop follow-up when someone replies. Those are sending
   tasks, not report tasks.
@@ -492,9 +503,11 @@ One short email, usually 70–120 words:
 ### Review before sending
 
 Read the draft aloud. Check that it sounds like one person writing to another,
-that the specific detail is true, and that the offer is easy to decline. If the
-site is already healthy, keep the email light or skip it. If the business has no
-published email, do not invent one.
+that the specific detail is true, and that the offer is easy to decline. Cut
+anything that sounds like a template. Use `references/email-copy.md` for the
+human-voice checklist and the before/after example. If the site is already
+healthy, keep the email light or skip it. If the business has no published
+email, do not invent one.
 
 The pipeline never sends email automatically. It writes drafts. Sending is a
 separate step that requires explicit approval.
@@ -655,6 +668,10 @@ send time and refuses to send while any remain.
   or opportunity, one value statement, one low-pressure ask, and one opt-out. No
   invented proof, no guessed email, and no automatic sending. Sending is Phase 7
   and requires explicit approval.
+- **Copy must sound human.** Load `cold-email` and use
+  `references/email-copy.md`. Vary openings and opt-out lines, keep the postal
+  address, use plain text by default, and never claim a mockup exists unless it
+  does.
 - **Distinguish "broken" from "blocked".** 403/429 = verify manually.
 - **Distinguish "no website" from "no owned website".** A Facebook page is not
   a website, but it is still a contact channel.

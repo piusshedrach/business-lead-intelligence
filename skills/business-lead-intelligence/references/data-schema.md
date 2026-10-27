@@ -174,8 +174,14 @@ the verified status.
 `cold_email_subject` and `cold_email_body` are a first-touch draft. The subject
 is 2–4 lowercase words. The body contains one specific observation, one problem
 or opportunity, one value statement, one low-pressure ask, the sender
-signature, and a plain-text opt-out. Replace any `[bracketed]` sender
-placeholders before sending.
+signature, the postal address, and a natural opt-out. Replace any `[bracketed]`
+sender placeholders before sending.
+
+The automatic draft is a starting point. Rewrite it with the `cold-email` skill
+and `references/email-copy.md` before sending. Do not claim a free landing page
+exists unless it does. If you build one, keep the URL in a separate
+`mockup_url` column or a mapping file, and send the link only after the prospect
+asks for it.
 
 `cold_email_status` is one of:
 
@@ -189,9 +195,10 @@ generic inbox. `email_evidence` is the exact finding used in the email body.
 It may differ from `outreach_hook` because the email picks the most
 customer-facing issue, not necessarily the strongest technical one.
 
-The pipeline never sends email. It does not verify inboxes or manage
-deliverability. Use the `cold-email` skill for sending setup, warm-up, cadence,
-and reply handling.
+The pipeline never sends email automatically. It does not verify inboxes or
+manage deliverability. Sending is the optional `gmail_sender.py` step after
+explicit approval. Use the `cold-email` skill for sending setup, warm-up,
+cadence, and reply handling.
 
 ### `*_site_findings.csv`
 

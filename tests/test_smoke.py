@@ -26,11 +26,13 @@ from bootstrap import (  # noqa: E402
     skills_command,
 )
 from build_report import (  # noqa: E402
+    OPT_OUT_LINES,
     cold_email,
     email_greeting,
     email_problem,
     indefinite_article,
     opening_line,
+    opt_out_line,
     outreach_hook,
     possessive,
     recommended_offer,
@@ -151,7 +153,8 @@ class ColdEmailTests(unittest.TestCase):
         self.assertIn("4.8", body)
         self.assertIn("82", body)
         self.assertIn("no website", body.lower())
-        self.assertIn("Not relevant?", body)
+        self.assertTrue(any(line in body for line in OPT_OUT_LINES))
+        self.assertNotIn("Not relevant?", body)
         self.assertIn("Alex", body)
         self.assertIn("1 Main St", body)
         self.assertNotIn("—", body)
@@ -237,6 +240,11 @@ class ColdEmailTests(unittest.TestCase):
         }
         self.assertEqual(email_greeting(dm), "Hi Dr. Rao,")
         self.assertEqual(email_greeting({}), "Hi team,")
+
+    def test_opt_out_lines_are_natural_and_stable(self) -> None:
+        self.assertEqual(opt_out_line("Cantt Dental Care"), opt_out_line("Cantt Dental Care"))
+        self.assertIn(opt_out_line("Cantt Dental Care"), OPT_OUT_LINES)
+        self.assertNotIn("Not relevant?", OPT_OUT_LINES)
 
 
 class GmailSenderTests(unittest.TestCase):

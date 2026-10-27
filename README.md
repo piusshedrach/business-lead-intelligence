@@ -246,6 +246,11 @@ remaining placeholders, suppresses duplicates through
 `skills/business-lead-intelligence/references/gmail-sending.md` before the
 first send.
 
+The generated copy is a starting point. Rewrite it with the `cold-email` skill
+and `references/email-copy.md` before sending. Keep the postal address and a
+natural opt-out. Use plain text by default. If you offer a free landing page
+concept, only say it is built when the page exists and the link works.
+
 The official Gmail MCP server is not required. It is currently gated behind the
 Google Workspace Developer Preview Program and exposes draft tools, not a send
 tool.
@@ -275,6 +280,7 @@ skills/business-lead-intelligence/
 ├── dependencies.json
 ├── requirements.txt
 ├── references/
+│   ├── email-copy.md
 │   └── gmail-sending.md
 └── scripts/
     ├── bootstrap.py

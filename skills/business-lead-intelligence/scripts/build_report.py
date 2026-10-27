@@ -228,6 +228,21 @@ def short_business_name(name: str) -> str:
     return value or clean_text(name)
 
 
+OPT_OUT_LINES = [
+    "If this isn't useful, just say so and I'll stop.",
+    "No worries if it's not for you, just let me know.",
+    "If you'd rather not hear from me, say so and I'll leave it there.",
+    "If this isn't a fit, just tell me and I'll stop.",
+    "Not for you? Just say so and I'll leave it.",
+]
+
+
+def opt_out_line(business_name: str) -> str:
+    """Pick a natural opt-out line, varied by business without randomness."""
+    index = sum(ord(char) for char in business_name) % len(OPT_OUT_LINES)
+    return OPT_OUT_LINES[index]
+
+
 def email_greeting(dm: dict) -> str:
     buyer = buyer_candidate(dm)
     if not buyer:
@@ -580,7 +595,7 @@ def cold_email(business: dict, audit: dict, dm: dict, sender: dict) -> tuple[str
             "",
             *signature,
             "",
-            'Not relevant? Reply "no" and I won\'t follow up.',
+            opt_out_line(name),
         ]
     )
 

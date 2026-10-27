@@ -13,7 +13,8 @@ The official Gmail MCP server is not required. It is currently gated behind the 
 - Duplicate suppression through a local sent log.
 - A delay between sends, default 3 seconds.
 - Dry-run by default. Actual sending requires both `--send` and `--yes`.
-- Plain-text email with the existing opt-out line.
+- Plain-text email with a natural opt-out line and the postal address.
+- No HTML, bold, images, tracking pixels, or links in the first touch.
 - Optional `List-Unsubscribe` header.
 
 The sender does not warm domains, verify inboxes, manage replies, or decide whether outreach is legally appropriate. Use the `cold-email` skill for deliverability and cadence, and follow local outreach law.

@@ -284,6 +284,11 @@ address, refuses to send while placeholders remain, suppresses duplicates via
 `references/gmail-sending.md` for OAuth setup, scopes, filters, and
 troubleshooting.
 
+The generated copy is a starting point. Rewrite it with the `cold-email` skill
+and `references/email-copy.md` before sending. Keep the postal address and a
+natural opt-out. Use plain text by default. If you offer a free landing page
+concept, only say it is built when the page exists and the link works.
+
 The official Gmail MCP server is not required. It is currently gated behind the
 Google Workspace Developer Preview Program and exposes draft tools, not a send
 tool.
