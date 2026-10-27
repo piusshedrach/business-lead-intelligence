@@ -341,6 +341,11 @@ def email_cta(kind: str) -> str:
     return offers.get(kind, "I can send the short fix list. Want it?")
 
 
+def indefinite_article(value: str) -> str:
+    """Return the article for a spoken number, e.g. an 11.1-second wait."""
+    return "an" if value.startswith(("8", "11", "18")) else "a"
+
+
 def email_problem(finding: dict, kind: str, audit: dict) -> tuple[str, str]:
     """Translate an audit finding into a customer-facing observation and value."""
     title = (finding.get("title") or "").lower()
@@ -370,8 +375,9 @@ def email_problem(finding: dict, kind: str, audit: dict) -> tuple[str, str]:
         if match:
             seconds = f"{float(match.group(1)):g}"
             observation = f"The homepage takes about {seconds} seconds to respond."
+            article = indefinite_article(seconds)
             value = (
-                f"On a phone, a {seconds}-second wait is a long time before a patient "
+                f"On a phone, {article} {seconds}-second wait is a long time before a patient "
                 "sees your services."
             )
         else:

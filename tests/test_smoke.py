@@ -28,6 +28,8 @@ from bootstrap import (  # noqa: E402
 from build_report import (  # noqa: E402
     cold_email,
     email_greeting,
+    email_problem,
+    indefinite_article,
     opening_line,
     outreach_hook,
     possessive,
@@ -121,6 +123,19 @@ class ReportTests(unittest.TestCase):
     def test_possessive(self) -> None:
         self.assertEqual(possessive("De'Dentiste'"), "De'Dentiste's")
         self.assertEqual(possessive("SmileOn"), "SmileOn's")
+
+    def test_slow_email_uses_correct_article(self) -> None:
+        self.assertEqual(indefinite_article("11.1"), "an")
+        self.assertEqual(indefinite_article("8.5"), "an")
+        self.assertEqual(indefinite_article("18"), "an")
+        self.assertEqual(indefinite_article("22.8"), "a")
+        self.assertEqual(indefinite_article("7"), "a")
+        finding = {
+            "title": "Homepage response is slow",
+            "evidence": "Initial HTML response took 11.1s.",
+        }
+        _, value = email_problem(finding, "slow", {})
+        self.assertIn("an 11.1-second wait", value)
 
 
 class ColdEmailTests(unittest.TestCase):
