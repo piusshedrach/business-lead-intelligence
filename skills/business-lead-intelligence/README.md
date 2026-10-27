@@ -63,8 +63,23 @@ OpenCode also discovers `~/.agents/skills`, `~/.claude/skills`, and project
 
 ## Setup after installing
 
-`npx skills` copies the skill files only. It does **not** install Python
-packages, Firefox, or the Browser Control extension. Complete these steps once.
+`npx skills` copies the skill files only. Run the bundled bootstrap once from a
+writable workspace:
+
+```bash
+export SKILL_DIR="$HOME/.agents/skills/business-lead-intelligence"
+cd ~/lead-runs   # any writable directory
+python3 "$SKILL_DIR/scripts/bootstrap.py"
+```
+
+It creates `.venv`, installs `requirements.txt`, installs the companion skills
+declared in `dependencies.json`, and installs the optional Browser Control CLI
+when npm is available. It is idempotent. Use `--dry-run`, `--no-venv`,
+`--no-skills`, `--no-optional`, or `--no-browser-control` to change what it
+does. Then run `doctor.py`.
+
+The manual steps below are the fallback if the bootstrap cannot run. They do
+**not** install Firefox or the Browser Control extension for you.
 
 ### 1. Python
 
@@ -164,19 +179,27 @@ the machine is offline, install geckodriver manually and put it on `PATH`.
 Expected final line: `Ready.` If it fails, the output tells you whether Python
 modules, Browser Control, Firefox, or the output directory need attention.
 
-### 6. Optional companion: cold-email
+### 6. Companion skills
 
-The report generator writes grounded drafts on its own. For stronger outbound
-guidance, install the companion skill once:
+The bootstrap installs the companions declared in `dependencies.json`:
+`cold-email`, `prospecting`, and `web-quality-audit` plus its reference skills
+(`performance`, `core-web-vitals`, `accessibility`, `seo`, `best-practices`).
+It also installs the optional `browser-control` skill. The manual equivalent is:
 
 ```bash
 npx skills add coreyhaines31/marketingskills \
-  --skill cold-email \
-  -a opencode -g --copy
+  --skill cold-email prospecting \
+  -a opencode -g --copy -y
+
+npx skills add addyosmani/web-quality-skills \
+  --skill web-quality-audit performance core-web-vitals accessibility seo best-practices \
+  -a opencode -g --copy -y
 ```
 
-It adds deliverability, sending-domain, follow-up, and reply-handling guidance.
-This skill still owns the business facts and evidence.
+The report generator writes grounded drafts on its own. The `cold-email` skill
+adds deliverability, sending-domain, follow-up, and reply-handling guidance.
+`web-quality-audit` is there for a deeper browser/Lighthouse pass. This skill
+still owns the business facts and evidence.
 
 ### 7. Run
 

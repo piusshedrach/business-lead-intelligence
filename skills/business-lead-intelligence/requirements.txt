@@ -1,5 +1,7 @@
 # Runtime dependencies for business-lead-intelligence.
 # Python 3.10+ is required.
+# Install with scripts/bootstrap.py or:
+#   python -m pip install -r requirements.txt
 requests>=2.31
 beautifulsoup4>=4.12
 

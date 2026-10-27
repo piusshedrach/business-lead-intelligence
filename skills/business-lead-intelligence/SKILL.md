@@ -56,9 +56,23 @@ instead of filtering manually after the run.
 
 ### After installation — first-run setup
 
-`npx skills` copies the skill files only. It does **not** install Python
-packages, Firefox, or the Browser Control extension. Complete these steps once
-before the first run.
+`npx skills` copies the skill files only. Run the bundled bootstrap once from a
+writable workspace:
+
+```bash
+export SKILL_DIR="$HOME/.agents/skills/business-lead-intelligence"
+cd ~/lead-runs   # any writable directory
+python3 "$SKILL_DIR/scripts/bootstrap.py"
+```
+
+The bootstrap reads `dependencies.json`, creates `.venv`, installs
+`requirements.txt`, installs the companion skills for OpenCode, and installs
+the optional Browser Control CLI when npm is available. It is idempotent.
+Useful flags: `--dry-run`, `--no-venv`, `--no-skills`, `--no-optional`, and
+`--no-browser-control`. Then run `doctor.py`.
+
+The manual steps below are the fallback if the bootstrap cannot run. They do
+**not** install Firefox or the Browser Control extension for you.
 
 **1. Check the prerequisites**
 
@@ -185,20 +199,28 @@ If it fails:
 - Firefox missing → install it, or set `FIREFOX_BIN`.
 - `output` not writable → run from another workspace.
 
-**6. Optional companion: the `cold-email` skill**
+**6. Companion skills**
 
-The report script can write grounded first drafts on its own. For stronger
-outbound guidance, install the companion skill once:
+The bootstrap installs the companions declared in `dependencies.json`:
+`cold-email`, `prospecting`, and `web-quality-audit` plus its reference skills
+(`performance`, `core-web-vitals`, `accessibility`, `seo`, `best-practices`).
+It also installs the optional `browser-control` skill. The manual equivalent is:
 
 ```bash
 npx skills add coreyhaines31/marketingskills \
-  --skill cold-email \
-  -a opencode -g --copy
+  --skill cold-email prospecting \
+  -a opencode -g --copy -y
+
+npx skills add addyosmani/web-quality-skills \
+  --skill web-quality-audit performance core-web-vitals accessibility seo best-practices \
+  -a opencode -g --copy -y
 ```
 
-Load it before Phase 6 when it is available. It covers deliverability, sending
-domains, follow-up cadence, and reply handling. This skill still owns the
-business facts and evidence.
+The report script can write grounded first drafts on its own. Load
+`cold-email` before Phase 6 when it is available; it covers deliverability,
+sending domains, follow-up cadence, and reply handling. This skill still owns
+the business facts and evidence. Use `web-quality-audit` when a deeper
+browser/Lighthouse pass is needed.
 
 All command examples below use `$PY` and `$SKILL_DIR`.
 
@@ -417,8 +439,9 @@ Read `references/decision-maker-sources.md` before expanding the search.
 This is the final stage, after discovery, audit, findings, and decision-maker
 research. Do not write the email before the facts are in the report.
 
-Load the `cold-email` skill if it is installed. Use it for outbound judgment and
-sending setup. Use this skill's report as the only source of business facts.
+Load the `cold-email` skill (the bootstrap installs it). Use it for outbound
+judgment and sending setup. Use this skill's report as the only source of
+business facts.
 
 `build_report.py` writes a first-touch draft for every business to
 `<prefix>_cold_emails.md` and to the `cold_email_subject` / `cold_email_body`

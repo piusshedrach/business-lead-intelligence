@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "python": {
+    "minimum": "3.10",
+    "requirements": "requirements.txt"
+  },
+  "node": {
+    "minimum": "22.20",
+    "reason": "npx skills and the Browser Control CLI"
+  },
+  "skills_cli": "skills@1.7.4",
+  "agent": "opencode",
+  "skills": [
+    {
+      "source": "coreyhaines31/marketingskills",
+      "skills": [
+        "cold-email",
+        "prospecting"
+      ],
+      "reason": "Cold-email judgment, deliverability guidance, and local prospecting context."
+    },
+    {
+      "source": "addyosmani/web-quality-skills",
+      "skills": [
+        "web-quality-audit",
+        "performance",
+        "core-web-vitals",
+        "accessibility",
+        "seo",
+        "best-practices"
+      ],
+      "reason": "Deeper web quality auditing and the reference skills that web-quality-audit links to."
+    }
+  ],
+  "optional_skills": [
+    {
+      "source": "anomalyco/browser-control",
+      "skills": [
+        "browser-control"
+      ],
+      "reason": "Workflow guidance for the preferred real-browser Maps driver."
+    }
+  ],
+  "npm_tools": [
+    {
+      "package": "@opencode-ai/browser-control",
+      "binary": "browser-control",
+      "reason": "Preferred Maps driver. Selenium plus Firefox is the fallback."
+    }
+  ]
+}

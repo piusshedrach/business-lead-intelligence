@@ -11,6 +11,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from bootstrap import DEFAULT_MANIFEST, find_installed_skill, load_manifest
+
 
 def check_module(name: str, *, required: bool) -> tuple[bool, str]:
     spec = importlib.util.find_spec(name)
@@ -40,6 +42,41 @@ def find_firefox() -> str | None:
         if candidate and Path(candidate).exists():
             return candidate
     return None
+
+
+def companion_skill_status() -> list[str]:
+    """Report companion skills declared by dependencies.json."""
+    messages: list[str] = []
+    try:
+        manifest = load_manifest(DEFAULT_MANIFEST)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        return [f"[warn] Could not read dependency manifest: {exc}"]
+
+    required = []
+    for group in manifest.get("skills") or []:
+        required.extend(str(name) for name in group.get("skills") or [])
+    optional = []
+    for group in manifest.get("optional_skills") or []:
+        optional.extend(str(name) for name in group.get("skills") or [])
+
+    for name in dict.fromkeys(required):
+        if find_installed_skill(name):
+            messages.append(f"[ok] Companion skill: {name}")
+        else:
+            messages.append(
+                f"[warn] Companion skill missing: {name} "
+                "(run scripts/bootstrap.py)"
+            )
+    for name in dict.fromkeys(optional):
+        if name in required:
+            continue
+        if find_installed_skill(name):
+            messages.append(f"[ok] Optional companion skill: {name}")
+        else:
+            messages.append(
+                f"[info] Optional companion skill not installed: {name}"
+            )
+    return messages
 
 
 def browser_control_status() -> tuple[bool, bool, str]:
@@ -94,6 +131,11 @@ def main() -> None:
     good, message = check_module("selenium", required=False)
     print(message)
 
+    print("")
+    for message in companion_skill_status():
+        print(message)
+
+    print("")
     _bc_present, bc_connected, bc_message = browser_control_status()
     print(bc_message)
 

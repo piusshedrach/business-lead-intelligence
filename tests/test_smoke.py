@@ -13,6 +13,13 @@ from types import SimpleNamespace
 SCRIPTS = Path(__file__).resolve().parents[1] / "skills" / "business-lead-intelligence" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
+from bootstrap import (  # noqa: E402
+    DEFAULT_MANIFEST,
+    load_manifest,
+    npm_install_command,
+    skill_names,
+    skills_command,
+)
 from build_report import (  # noqa: E402
     cold_email,
     email_greeting,
@@ -216,6 +223,40 @@ class FilterTests(unittest.TestCase):
         self.assertFalse(matches_pre_filters({"rating": "4.0", "reviews": "120", "website": ""}, args))
         self.assertFalse(matches_pre_filters({"rating": "4.8", "reviews": "10", "website": ""}, args))
         self.assertFalse(matches_pre_filters({"rating": "4.8", "reviews": "120", "website": "x.com"}, args))
+
+
+class BootstrapTests(unittest.TestCase):
+    def test_manifest_declares_companion_skills(self) -> None:
+        manifest = load_manifest(DEFAULT_MANIFEST)
+        names = skill_names(manifest)
+        for expected in ("cold-email", "prospecting", "web-quality-audit"):
+            self.assertIn(expected, names)
+        self.assertIn("performance", names)
+        self.assertIn("browser-control", names)
+
+    def test_skills_command_installs_named_skills_globally(self) -> None:
+        manifest = load_manifest(DEFAULT_MANIFEST)
+        group = manifest["skills"][0]
+        command = skills_command(
+            group,
+            cli=manifest["skills_cli"],
+            agent="opencode",
+            global_scope=True,
+        )
+        self.assertEqual(command[:5], ["npx", "-y", manifest["skills_cli"], "add", group["source"]])
+        self.assertIn("cold-email", command)
+        self.assertIn("prospecting", command)
+        self.assertIn("-g", command)
+        self.assertIn("--copy", command)
+        self.assertIn("-y", command)
+
+    def test_npm_tool_command(self) -> None:
+        manifest = load_manifest(DEFAULT_MANIFEST)
+        tool = manifest["npm_tools"][0]
+        self.assertEqual(
+            npm_install_command(tool),
+            ["npm", "install", "-g", tool["package"]],
+        )
 
 
 if __name__ == "__main__":

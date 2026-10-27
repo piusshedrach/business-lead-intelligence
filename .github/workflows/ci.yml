@@ -16,5 +16,7 @@ jobs:
         run: pip install -r skills/business-lead-intelligence/requirements.txt
       - name: Run smoke tests
         run: python -m unittest discover -s tests -v
+      - name: Check dependency bootstrap plan
+        run: python skills/business-lead-intelligence/scripts/bootstrap.py --dry-run --no-venv --no-optional --no-browser-control
       - name: Setup check
         run: python skills/business-lead-intelligence/scripts/doctor.py --allow-no-driver
