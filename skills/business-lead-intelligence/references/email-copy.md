@@ -4,6 +4,60 @@ The generated draft is a starting point, not finished copy. Load the
 `cold-email` skill and rewrite the draft until it sounds like one person writing
 to another. Keep every factual claim traceable to the report.
 
+## Cold Outreach Writing Standard
+
+When drafting or reviewing cold emails for my web design and redesign outreach,
+prioritize natural, specific, persuasive writing.
+
+### Understand the prospect first
+
+- Use the actual audit findings and business context.
+- Identify one meaningful problem, not a list of defects.
+- Explain why it matters to this particular business.
+- Never invent research, customer behaviour, results, or urgency.
+
+### Sound like a person
+
+- Use simple, conversational English and contractions.
+- Avoid corporate language, generic compliments, and sales jargon.
+- Do not make every email follow the same sentence structure.
+- Avoid robotic openings such as "I noticed something" and generic claims like
+  "unlock your business potential."
+- Avoid explaining obvious things to the recipient.
+- Keep the tone calm, direct, and low-pressure.
+
+### Make the email persuasive
+
+- Don't merely report a technical issue. Connect it to a plausible customer
+  experience or business consideration.
+- Distinguish measured facts from assumptions.
+- Show sound judgment about which issue matters most.
+- If a custom landing page concept exists, explain what the prospect can
+  actually see or evaluate in it.
+- Sell the relevance of the idea, not the fact that it is free.
+- Never claim the concept has improved the live website.
+
+### Avoid template thinking
+
+- Do not force every email into the same problem-solution-CTA formula.
+- Vary the angle according to the prospect's actual situation.
+- Do not repeat the same observation in follow-ups.
+- Write the subject after deciding the email's main point.
+
+### Before returning a draft
+
+1. Remove any sentence that could be sent unchanged to 100 unrelated
+   businesses.
+2. Remove claims that are not supported by the available data.
+3. Check whether the recipient has a real reason to reply.
+4. Ask whether the email sounds natural when read aloud.
+5. Prefer a clear, specific message over clever sales copy.
+6. If the idea is weak, say so instead of disguising it with better wording.
+7. Return the final email and briefly explain the reasoning.
+
+The standard above is the governing checklist. The rest of this file adds
+concrete rules and examples for applying it.
+
 ## First-touch shape
 
 Use a short, natural email:

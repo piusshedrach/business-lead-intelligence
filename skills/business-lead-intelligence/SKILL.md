@@ -447,6 +447,16 @@ business facts. Read `references/email-copy.md` before rewriting a draft.
 `<prefix>_cold_emails.md` and to the `cold_email_subject` / `cold_email_body`
 columns. Treat those as drafts to review, not as approved copy.
 
+### Apply the writing standard
+
+Use the **Cold Outreach Writing Standard** in `references/email-copy.md` as the
+governing checklist. In short: understand the prospect first, name one
+meaningful problem, explain why it matters to this business, sound like a
+person, separate measured facts from assumptions, vary the angle, and never
+invent research, results, or urgency. Before returning a draft, remove any
+sentence that could be sent unchanged to 100 unrelated businesses, and explain
+the reasoning briefly.
+
 ### The email shape
 
 One short email, usually 50–90 words:
