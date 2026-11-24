@@ -9,8 +9,10 @@ description: >
   business, research named decision makers beyond the listed phone, and generate
   an evidence-based outreach hook, opening line, and short personalized cold
   email for each lead. Use when asked to find leads, audit local business
-  websites, build a prospect list, filter businesses by rating or website
-  status, find owners/founders/managers, or write first-touch outreach.
+  websites, verify whether a business really has no website by searching
+  Google/DuckDuckGo for its name and aliases, build a prospect list, filter
+  businesses by rating or website status, find owners/founders/managers, or
+  write first-touch outreach.
 ---
 
 # Business Lead Intelligence
@@ -387,6 +389,58 @@ detailed findings and evidence are the real deliverable.
 **Important distinction:** HTTP 403/429 is reported as `blocked_to_bots`, not
 "down". A bot block may not affect real visitors. Verify those in a browser.
 
+### Verify a "no website" claim with a search engine
+
+A missing Website field on Google Maps is not proof that the business has no
+site: the owner may simply not have linked it. Before calling a business
+`no_website`, putting "no website" in FINDINGS, or writing it into a cold email,
+run `verify_website_presence.py`. It searches DuckDuckGo (Bing fallback) for the
+Maps name and any known aliases, then looks for an owned domain among the
+results.
+
+Input is a JSON array. Each element is one business:
+
+```json
+[
+  "SmileOn Dental Lahore",
+  ["Dentocorrect", "Dentocorrect Gulberg", "Dentocorrect Dental Clinic"]
+]
+```
+
+- A **string** is one search query, usually the business name as shown on Google
+  Maps (add the area/city if the name is generic).
+- An **array of strings** holds aliases, alternate spellings, or former names of
+  the *same* business. Every alias is searched.
+
+```bash
+$PY "$SKILL_DIR/scripts/verify_website_presence.py" \
+  --input data/no_website_names.json \
+  --output data/no_website_verification.json \
+  --csv data/no_website_verification.csv \
+  --city "Lahore"
+```
+
+`--city` is appended to any query that does not already contain it. Use
+`--engine duckduckgo|bing|both` to force a backend (default `auto`), and
+`--delay` to be more polite. The JSON report keeps the raw results, candidate
+sites, social profiles, per-engine errors, and `manual_check_url`.
+
+| Verdict | Meaning | What to do |
+|---|---|---|
+| `has_website` | A plausible owned domain appeared (domain + text match the name) | Open `candidate_sites[0].url`. Audit that domain instead of calling the business no-website. |
+| `no_website_found` | Results came back, but none was a plausible owned domain | Social/directory-only presence is not a website. You may say "no website" with the evidence attached. |
+| `inconclusive` | The engines were blocked, rate-limited, or returned nothing | Do **not** claim the business has no website. Open `manual_check_url` or keep the claim out of outreach. |
+
+Rules:
+
+- Search results are evidence, not proof. Never name a candidate domain in an
+  email until you have opened it and confirmed it belongs to this business.
+- Treat an empty or blocked SERP as `inconclusive`, never as `no_website_found`.
+  The script already does this; do not override it by hand.
+- A `has_website` result overrides the Maps label. Re-run the audit on the found
+  URL so the score and findings reflect the real site.
+- Keep `verified_at` and the query list with the lead so the claim is auditable.
+
 Read `references/audit-rules.md` for the full rule set and recommended fixes.
 
 ---
@@ -669,6 +723,12 @@ $PY "$SKILL_DIR/scripts/find_decision_makers.py" \
   --input data/lahore_dentists_businesses.json \
   --output data/lahore_dentists_decision_makers.json --max-queries 6
 
+# Verify "no website" claims against DuckDuckGo/Bing before outreach
+$PY "$SKILL_DIR/scripts/verify_website_presence.py" \
+  --input data/no_website_names.json \
+  --output data/no_website_verification.json \
+  --csv data/no_website_verification.csv --city "Lahore"
+
 # Report only
 $PY "$SKILL_DIR/scripts/build_report.py" \
   --businesses data/lahore_dentists_businesses.json \
@@ -710,6 +770,9 @@ Windows (PowerShell) equivalents of the same commands:
 
 # Audit only
 & $PY "$env:SKILL_DIR\scripts\audit_sites.py" --input data/lahore_dentists_businesses.json --output data/lahore_dentists_audits.json --workers 6
+
+# Verify "no website" claims against DuckDuckGo/Bing before outreach
+& $PY "$env:SKILL_DIR\scripts\verify_website_presence.py" --input data/no_website_names.json --output data/no_website_verification.json --csv data/no_website_verification.csv --city "Lahore"
 
 # Report only
 & $PY "$env:SKILL_DIR\scripts\build_report.py" --businesses data/lahore_dentists_businesses.json --audits data/lahore_dentists_audits.json --decision-makers data/lahore_dentists_decision_makers.json --output-dir output --prefix lahore_dentists --sender-name "Your Name" --sender-company "Your Company" --sender-address "Your postal address"

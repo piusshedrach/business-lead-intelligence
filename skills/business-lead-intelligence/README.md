@@ -268,6 +268,33 @@ Prepared input (skip Maps):
   --business "dentists" --location "Lahore"
 ```
 
+### Verify a "no website" claim
+
+A business can have a site that is not linked on its Google Maps listing. Before
+using "no website" in findings or outreach, search for the Maps name and its
+aliases with `verify_website_presence.py`:
+
+```json
+[
+  "SmileOn Dental Lahore",
+  ["Dentocorrect", "Dentocorrect Gulberg", "Dentocorrect Dental Clinic"]
+]
+```
+
+```bash
+.venv/bin/python "$SKILL_DIR/scripts/verify_website_presence.py" \
+  --input data/no_website_names.json \
+  --output data/no_website_verification.json \
+  --csv data/no_website_verification.csv \
+  --city "Lahore"
+```
+
+A string element is one query; an array element holds aliases/spellings of the
+same business. Verdicts are `has_website`, `no_website_found`, and
+`inconclusive`. A blocked or empty search is always `inconclusive`, never proof
+that the business has no site. Open any `candidate_sites` URL before naming it
+in an email.
+
 ## Send (optional)
 
 Sending is a separate, explicit step. Authorize the Gmail API once:
