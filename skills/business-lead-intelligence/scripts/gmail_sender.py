@@ -51,6 +51,8 @@ from pathlib import Path
 
 import requests
 
+from common import configure_stdio
+
 AUTH_URI = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 GMAIL_SEND_URI = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
@@ -472,6 +474,7 @@ def load_sent_log(path: Path) -> dict:
 
 
 def main() -> None:
+    configure_stdio()
     parser = argparse.ArgumentParser(
         description="Send reviewed cold-email drafts through the Gmail API."
     )

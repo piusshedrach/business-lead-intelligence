@@ -64,6 +64,9 @@ cp -R business-lead-intelligence/skills/business-lead-intelligence ~/.agents/ski
 OpenCode also discovers `~/.agents/skills`, `~/.claude/skills`, and project
 `.opencode/skills` / `.agents/skills` directories.
 
+On Windows, copy it with
+`Copy-Item -Recurse business-lead-intelligence\skills\business-lead-intelligence "$env:USERPROFILE\.agents\skills\"`.
+
 ## Setup after installing
 
 `npx skills` copies the skill files only. Run the bundled bootstrap once from a
@@ -73,6 +76,15 @@ writable workspace:
 export SKILL_DIR="$HOME/.agents/skills/business-lead-intelligence"
 cd ~/lead-runs   # any writable directory
 python3 "$SKILL_DIR/scripts/bootstrap.py"
+```
+
+On Windows use PowerShell (OpenCode's default shell there) and `py -3`:
+
+```powershell
+$env:SKILL_DIR = "$env:USERPROFILE\.agents\skills\business-lead-intelligence"
+New-Item -ItemType Directory -Force "$env:USERPROFILE\lead-runs" | Out-Null
+Set-Location "$env:USERPROFILE\lead-runs"
+py -3 "$env:SKILL_DIR\scripts\bootstrap.py"
 ```
 
 It creates `.venv`, installs `requirements.txt`, installs the companion skills
@@ -110,22 +122,28 @@ cd ~/lead-runs
 python3 -m venv .venv
 ```
 
-On Windows:
+On Windows (PowerShell):
 
-```bat
-set SKILL_DIR=%USERPROFILE%\.agents\skills\business-lead-intelligence
-cd %USERPROFILE%\lead-runs
+```powershell
+$env:SKILL_DIR = "$env:USERPROFILE\.agents\skills\business-lead-intelligence"
+Set-Location "$env:USERPROFILE\lead-runs"
 py -3 -m venv .venv
 ```
+
+In `cmd.exe`, use `set SKILL_DIR=%USERPROFILE%\.agents\skills\business-lead-intelligence`,
+`cd %USERPROFILE%\lead-runs`, and `py -3 -m venv .venv`.
 
 ### 3. Install the Python packages
 
 ```bash
 # macOS/Linux
 .venv/bin/pip install -r "$SKILL_DIR/requirements.txt"
+```
 
-# Windows
-.venv\Scripts\pip install -r "%SKILL_DIR%\requirements.txt"
+On Windows (PowerShell):
+
+```powershell
+& "$PWD\.venv\Scripts\pip.exe" install -r "$env:SKILL_DIR\requirements.txt"
 ```
 
 This installs `requests`, `beautifulsoup4`, and `selenium`. Only `requests` and
@@ -174,9 +192,12 @@ the machine is offline, install geckodriver manually and put it on `PATH`.
 ```bash
 # macOS/Linux
 .venv/bin/python "$SKILL_DIR/scripts/doctor.py"
+```
 
-# Windows
-.venv\Scripts\python "%SKILL_DIR%\scripts\doctor.py"
+On Windows (PowerShell):
+
+```powershell
+& "$PWD\.venv\Scripts\python.exe" "$env:SKILL_DIR\scripts\doctor.py"
 ```
 
 Expected final line: `Ready.` If it fails, the output tells you whether Python

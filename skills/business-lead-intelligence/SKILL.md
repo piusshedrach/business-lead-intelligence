@@ -65,6 +65,16 @@ cd ~/lead-runs   # any writable directory
 python3 "$SKILL_DIR/scripts/bootstrap.py"
 ```
 
+On Windows use PowerShell (OpenCode's default shell on Windows) and `py -3`
+(or `python` if the launcher is not installed):
+
+```powershell
+$env:SKILL_DIR = "$env:USERPROFILE\.agents\skills\business-lead-intelligence"
+New-Item -ItemType Directory -Force "$env:USERPROFILE\lead-runs" | Out-Null
+Set-Location "$env:USERPROFILE\lead-runs"
+py -3 "$env:SKILL_DIR\scripts\bootstrap.py"
+```
+
 The bootstrap reads `dependencies.json`, creates `.venv`, installs
 `requirements.txt`, installs the companion skills for OpenCode, and installs
 the optional Browser Control CLI when npm is available. It is idempotent.
@@ -97,22 +107,28 @@ cd ~/lead-runs   # any writable directory
 python3 -m venv .venv
 ```
 
-On Windows:
+On Windows (PowerShell):
 
-```bat
-set SKILL_DIR=%USERPROFILE%\.agents\skills\business-lead-intelligence
-cd %USERPROFILE%\lead-runs
+```powershell
+$env:SKILL_DIR = "$env:USERPROFILE\.agents\skills\business-lead-intelligence"
+Set-Location "$env:USERPROFILE\lead-runs"
 py -3 -m venv .venv
 ```
+
+In `cmd.exe` the same lines are `set SKILL_DIR=%USERPROFILE%\.agents\skills\business-lead-intelligence`,
+`cd %USERPROFILE%\lead-runs`, and `py -3 -m venv .venv`.
 
 **3. Install the Python packages**
 
 ```bash
 # macOS/Linux
 .venv/bin/pip install -r "$SKILL_DIR/requirements.txt"
+```
 
-# Windows
-.venv\Scripts\pip install -r "%SKILL_DIR%\requirements.txt"
+On Windows (PowerShell):
+
+```powershell
+& "$PWD\.venv\Scripts\pip.exe" install -r "$env:SKILL_DIR\requirements.txt"
 ```
 
 This installs `requests`, `beautifulsoup4`, and `selenium`. The minimum set is
@@ -183,10 +199,14 @@ offline, install geckodriver manually and put it on `PATH`.
 export PY="$PWD/.venv/bin/python"
 "$PY" "$SKILL_DIR/scripts/doctor.py"
 
-# Windows
-set PY=%CD%\.venv\Scripts\python.exe
-"%PY%" "%SKILL_DIR%\scripts\doctor.py"
+# Windows (PowerShell)
+$PY = "$PWD\.venv\Scripts\python.exe"
+& $PY "$env:SKILL_DIR\scripts\doctor.py"
 ```
+
+`py -3` or `python` works instead of `python3` on Windows. If `doctor.py`
+reports a missing module, use the venv interpreter (`$PY`) rather than the
+system one.
 
 The expected final line is `Ready.` The doctor reports the Python version,
 required modules, Browser Control status, Selenium/Firefox availability, and
@@ -597,6 +617,25 @@ $PY "$SKILL_DIR/scripts/gmail_sender.py" \
 
 ## Commands
 
+The Python entry points and flags are identical on macOS, Linux, and Windows;
+only the shell syntax differs. Set the variables once:
+
+```bash
+# macOS/Linux
+export SKILL_DIR="$HOME/.agents/skills/business-lead-intelligence"
+export PY="$PWD/.venv/bin/python"
+```
+
+```powershell
+# Windows (PowerShell)
+$env:SKILL_DIR = "$env:USERPROFILE\.agents\skills\business-lead-intelligence"
+$PY = "$PWD\.venv\Scripts\python.exe"
+```
+
+Bash continues long commands with `\`; PowerShell uses a backtick. The Windows
+examples below keep each command on one line so they can be pasted directly.
+On Windows, `py -3` or `python` can replace `python3`.
+
 ```bash
 # Setup (see Phase 0 for the venv)
 $PY "$SKILL_DIR/scripts/doctor.py"
@@ -655,6 +694,30 @@ $PY "$SKILL_DIR/scripts/gmail_sender.py" \
   --sender-company "Your Company" \
   --sender-address "Your postal address" \
   --send --yes --limit 5 --delay 5
+```
+
+Windows (PowerShell) equivalents of the same commands:
+
+```powershell
+# Setup
+& $PY "$env:SKILL_DIR\scripts\doctor.py"
+
+# Full pipeline
+& $PY "$env:SKILL_DIR\scripts\run_pipeline.py" --business "dentists" --location "Lahore" --areas "Gulberg, DHA, Johar Town" --limit 30 --max-queries 6 --sender-name "Your Name" --sender-company "Your Company" --sender-address "Your postal address"
+
+# Filtered: no website, established businesses only
+& $PY "$env:SKILL_DIR\scripts\run_pipeline.py" --business "gyms" --location "Dubai" --website none --min-rating 4.3 --min-reviews 30 --limit 25
+
+# Audit only
+& $PY "$env:SKILL_DIR\scripts\audit_sites.py" --input data/lahore_dentists_businesses.json --output data/lahore_dentists_audits.json --workers 6
+
+# Report only
+& $PY "$env:SKILL_DIR\scripts\build_report.py" --businesses data/lahore_dentists_businesses.json --audits data/lahore_dentists_audits.json --decision-makers data/lahore_dentists_decision_makers.json --output-dir output --prefix lahore_dentists --sender-name "Your Name" --sender-company "Your Company" --sender-address "Your postal address"
+
+# Gmail sending (dry run first)
+& $PY "$env:SKILL_DIR\scripts\gmail_sender.py" --auth
+& $PY "$env:SKILL_DIR\scripts\gmail_sender.py" --csv output/lahore_dentists_all_leads.csv --sender-name "Your Name" --sender-company "Your Company" --sender-address "Your postal address" --show-body
+& $PY "$env:SKILL_DIR\scripts\gmail_sender.py" --csv output/lahore_dentists_all_leads.csv --sender-name "Your Name" --sender-company "Your Company" --sender-address "Your postal address" --send --yes --limit 5 --delay 5
 ```
 
 The `--sender-*` flags on `run_pipeline.py` and `build_report.py` only fill the

@@ -256,7 +256,10 @@ const payload = {
   report,
   businesses: all,
 };
-const outDir = output.includes("/") ? output.slice(0, output.lastIndexOf("/")) : ".";
+const outDir =
+  output.lastIndexOf("/") > 0 || output.lastIndexOf("\\") > 0
+    ? output.slice(0, Math.max(output.lastIndexOf("/"), output.lastIndexOf("\\")))
+    : ".";
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(output, JSON.stringify(payload, null, 2), "utf8");
 console.log(`[maps] wrote ${all.length} businesses -> ${output}`);

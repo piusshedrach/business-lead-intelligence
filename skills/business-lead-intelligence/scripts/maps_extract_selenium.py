@@ -23,6 +23,8 @@ import tempfile
 import time
 from pathlib import Path
 
+from common import configure_stdio
+
 TMP_DIR = Path(tempfile.gettempdir()) / "opencode"
 
 try:
@@ -156,6 +158,7 @@ def extract_detail(driver: webdriver.Firefox) -> dict:
 
 
 def main() -> None:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="Headless Firefox Google Maps extractor.")
     parser.add_argument("--config", default=str(TMP_DIR / "maps-config.json"))
     parser.add_argument("--headless", action="store_true", default=True)

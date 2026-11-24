@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import re
+import shutil
+import sys
 import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,6 +41,28 @@ ROLE_WORDS = [
     "administrator", "business development manager", "sales manager",
     "head of sales", "hr manager", "it manager", "doctor", "dr.",
 ]
+
+
+def configure_stdio() -> None:
+    """Force UTF-8 output so redirected output works on Windows code pages."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
+def tool_command(name: str, *args: str) -> list[str]:
+    """Build an argv for an external CLI that also runs on Windows.
+
+    npm, npx, and globally installed Node CLIs are ``.cmd`` shims on Windows.
+    ``CreateProcess`` cannot launch a batch file directly, so route those
+    through ``cmd.exe /c``.
+    """
+    resolved = shutil.which(name) or name
+    if os.name == "nt" and resolved.lower().endswith((".cmd", ".bat")):
+        return [os.environ.get("COMSPEC", "cmd.exe"), "/c", resolved, *args]
+    return [resolved, *args]
 
 
 def utc_now() -> str:

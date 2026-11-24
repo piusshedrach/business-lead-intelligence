@@ -29,11 +29,13 @@ sys.path.insert(0, str(SCRIPT_DIR))
 from audit_sites import audit_businesses  # noqa: E402
 from common import (  # noqa: E402
     clean_text,
+    configure_stdio,
     dedupe_businesses,
     load_json,
     merge_business_rows,
     save_json,
     slugify,
+    tool_command,
     utc_now,
 )
 from find_decision_makers import find_for_business  # noqa: E402
@@ -135,7 +137,7 @@ def run_maps(queries: list[str], limit_per_query: int, output: Path, max_scrolls
     browser_error = ""
     if driver_mode in ("browser", "auto"):
         script = SCRIPT_DIR / "maps_extract.js"
-        cmd = ["browser-control", "execute", "--file", str(script), "--json"]
+        cmd = tool_command("browser-control", "execute", "--file", str(script), "--json")
         try:
             proc = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)
             if proc.returncode == 0 and output.exists():
@@ -175,6 +177,10 @@ def run_maps(queries: list[str], limit_per_query: int, output: Path, max_scrolls
 
 
 def main() -> None:
+    configure_stdio()
+    # Child processes (Selenium, build_report) inherit UTF-8 on Windows too.
+    os.environ.setdefault("PYTHONUTF8", "1")
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
     parser = argparse.ArgumentParser(description="End-to-end local business lead intelligence pipeline.")
     parser.add_argument("--business", help='Niche, e.g. "dentists" or "gyms".')
     parser.add_argument("--location", help='City/region, e.g. "Lahore".')

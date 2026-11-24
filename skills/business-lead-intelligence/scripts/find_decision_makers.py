@@ -29,6 +29,7 @@ TMP_DIR = Path(tempfile.gettempdir()) / "opencode"
 
 from common import (
     EMAIL_RE,
+    configure_stdio,
     clean_text,
     domain_of,
     load_json,
@@ -805,6 +806,7 @@ def find_for_business(
 
 
 def main() -> None:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="Find public decision makers for businesses.")
     parser.add_argument("--input", required=True)
     parser.add_argument("--output", default="decision_makers.json")

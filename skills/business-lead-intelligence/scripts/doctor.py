@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 from bootstrap import DEFAULT_MANIFEST, find_installed_skill, load_manifest
+from common import configure_stdio, tool_command
 
 
 def check_module(name: str, *, required: bool) -> tuple[bool, str]:
@@ -86,7 +87,7 @@ def browser_control_status() -> tuple[bool, bool, str]:
         return False, False, "[info] browser-control is not on PATH (optional if Selenium works)"
     try:
         proc = subprocess.run(
-            [binary, "status", "--json"],
+            tool_command(binary, "status", "--json"),
             capture_output=True,
             text=True,
             timeout=20,
@@ -106,6 +107,7 @@ def browser_control_status() -> tuple[bool, bool, str]:
 
 
 def main() -> None:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="Check the lead-intelligence setup.")
     parser.add_argument(
         "--allow-no-driver",
@@ -149,6 +151,8 @@ def main() -> None:
         if not selenium_ok:
             print("[warn] Selenium is not installed, so the headless Firefox fallback is unavailable.")
             print('       Install it with: pip install -r "$SKILL_DIR/requirements.txt"')
+            if sys.platform.startswith("win"):
+                print('       Windows (PowerShell): & "$PWD\\.venv\\Scripts\\pip.exe" install -r "$env:SKILL_DIR\\requirements.txt"')
         if not firefox:
             print("[warn] Firefox was not found.")
             if sys.platform == "darwin":

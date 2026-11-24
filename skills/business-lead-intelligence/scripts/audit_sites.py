@@ -29,6 +29,7 @@ from bs4 import BeautifulSoup
 
 from common import (
     DIRECTORY_HOSTS,
+    configure_stdio,
     EMAIL_RE,
     PHONE_RE,
     ROLE_WORDS,
@@ -1824,6 +1825,7 @@ def audit_businesses(
 
 
 def main() -> None:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="Audit business websites.")
     parser.add_argument("--input", required=True, help="Businesses JSON (list or {businesses:[...]}).")
     parser.add_argument("--output", default="audits.json")

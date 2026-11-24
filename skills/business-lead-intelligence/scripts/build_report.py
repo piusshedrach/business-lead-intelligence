@@ -21,6 +21,7 @@ from urllib.parse import quote_plus
 
 from common import (
     clean_text,
+    configure_stdio,
     dedupe_businesses,
     load_json,
     save_csv,
@@ -518,7 +519,7 @@ def cold_email(business: dict, audit: dict, dm: dict, sender: dict) -> tuple[str
             else "There is no website linked from your Google listing."
         )
         value = (
-            "A simple site with your services, dentist profiles, and a booking form "
+            "A simple site with your services, credentials, and an enquiry form "
             "would give people a clear next step after they find you on Maps."
         )
         cta = f"If useful, I can send a one-page mockup for {short}, no call needed. Worth a look?"
@@ -530,8 +531,8 @@ def cold_email(business: dict, audit: dict, dm: dict, sender: dict) -> tuple[str
             else "The Google listing points to a social or directory page instead of an owned website."
         )
         value = (
-            "An owned site would give you one place for services, dentist profiles, and "
-            "booking instead of sending patients to a social feed."
+            "An owned site would give you one place for services, credentials, and "
+            "enquiries instead of sending people to a social feed."
         )
         cta = "I can send a simple site outline and a mockup. Want me to?"
     elif status.startswith("down") or status == "up_non_html":
@@ -1031,6 +1032,7 @@ def write_cold_emails(path: Path, rows: list[dict]) -> None:
 
 
 def main() -> None:
+    configure_stdio()
     parser = argparse.ArgumentParser(description="Build lead deliverables from pipeline outputs.")
     parser.add_argument("--businesses", required=True)
     parser.add_argument("--audits", required=True)

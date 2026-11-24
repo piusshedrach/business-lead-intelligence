@@ -25,6 +25,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from common import configure_stdio, tool_command
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 DEFAULT_MANIFEST = SKILL_DIR / "dependencies.json"
@@ -154,12 +156,13 @@ def run_command(
     dry_run: bool,
     label: str,
 ) -> bool:
-    printable = shlex.join(command)
+    argv = tool_command(command[0], *command[1:])
+    printable = shlex.join(argv)
     print(f"[bootstrap] {label}: {printable}")
     if dry_run:
         return True
     try:
-        proc = subprocess.run(command, cwd=str(cwd), check=False)
+        proc = subprocess.run(argv, cwd=str(cwd), check=False)
     except FileNotFoundError:
         print(f"[fail] Command not found: {command[0]}")
         return False
@@ -337,6 +340,7 @@ def print_next_steps(python: Path, workspace: Path) -> None:
 
 
 def main() -> None:
+    configure_stdio()
     parser = argparse.ArgumentParser(
         description="Install business-lead-intelligence dependencies."
     )
